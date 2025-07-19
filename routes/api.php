@@ -14,9 +14,9 @@ Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
 
 // private route for user
 Route::middleware('auth:api')->group(function () {
-    Route::get('/logout', [AuthController::class, 'logout']);
+    Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/change-password', [AuthController::class, 'changePassword']);
-    Route::get('/get-profile', [AuthController::class, 'get-profile']);
+    Route::get('/get-profile', [AuthController::class, 'getProfile']);
     Route::post('/update-password', [AuthController::class, 'updatePassword']);
 
     // ADMIN
