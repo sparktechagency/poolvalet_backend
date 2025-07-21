@@ -13,16 +13,21 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->string('full_name');
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            $table->string('role')->default('USER');
-            $table->string('status')->default('inactive');
-            $table->string('avatar')->nullable();
-            $table->string('otp_verified_at')->nullable();
+            $table->enum('role', ['ADMIN', 'PROVIDER', 'USER'])->default('USER');
+           $table->enum('status', ['Active', 'Inactive'])->default('Inactive');
+            $table->timestamp('otp_verified_at')->nullable();
             $table->string('otp')->nullable();
-            $table->string('otp_expires_at')->nullable();
+            $table->timestamp('otp_expires_at')->nullable();
+            $table->longText('bio')->nullable();
+            $table->string('contact_number')->nullable();
+            $table->string('location')->nullable();
+            $table->string('avatar')->nullable();
+            $table->string('google_id')->nullable();
+            $table->string('apple_id')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });

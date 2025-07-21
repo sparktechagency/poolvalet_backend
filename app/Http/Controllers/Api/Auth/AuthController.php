@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Mail\VerifyOTPMail;
+use App\Models\Profile;
 use App\Models\User;
 use Carbon\Carbon;
 use Exception;
@@ -35,7 +36,7 @@ class AuthController extends Controller
         // validation roles
         $validator = Validator::make($request->all(), [
             'role' => 'required|in:1,2',
-            'name' => 'required|string|max:255',
+            'full_name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email',
             'password' => 'required|string|min:8|confirmed',
         ]);
@@ -50,11 +51,15 @@ class AuthController extends Controller
 
         $user = User::create([
             'role' => $request->role == 1 ? 'USER' : 'PROVIDER',
-            'name' => ucfirst($request->name),
+            'full_name' => ucfirst($request->full_name),
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'otp' => $otp,
             'otp_expires_at' => $otp_expires_at,
+        ]);
+
+        Profile::create([
+            'user_id'=> $user->id,
         ]);
 
         try {

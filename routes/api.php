@@ -1,6 +1,10 @@
 <?php
 
+use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\QuoteListingController;
+use App\Http\Controllers\Admin\UserManageController;
 use App\Http\Controllers\Api\Auth\AuthController;
+use App\Http\Controllers\User\QuoteController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -21,7 +25,19 @@ Route::middleware('auth:api')->group(function () {
 
     // ADMIN
     Route::middleware('admin')->prefix('admin')->group(function () {
-        //
+        // users manage
+        Route::get('/get-users', [UserManageController::class, 'getUsers']);
+        Route::delete('/delete-user/{id?}', [UserManageController::class, 'deleteUser']);
+        Route::get('/view-user/{id?}', [UserManageController::class, 'viewUser']);
+
+        // quote listing
+        Route::get('/get-quote-listing',[QuoteListingController::class,'getQuoteListing']);
+        Route::get('/view-quote/{id?}',[QuoteListingController::class,'viewQuote']);
+
+        // categories
+        Route::post('/add-category',[CategoryController::class,'addCategory']);
+        Route::put('/edit-category/{id?}',[CategoryController::class,'editCategory']);
+        Route::delete('/delete-category/{id?}',[CategoryController::class,'deleteCategory']);
     });
 
     // COMPANY
@@ -31,6 +47,8 @@ Route::middleware('auth:api')->group(function () {
 
     // USER
     Route::middleware('user')->prefix('user')->group(function () {
-        // 
+        Route::post('/create-quote', [QuoteController::class, 'createQuote']);
+        Route::get('/get-quotes', [QuoteController::class, 'getQuotes']);
+        Route::get('/get-my-quotes', [QuoteController::class, 'getMyQuotes']);
     });
 });
