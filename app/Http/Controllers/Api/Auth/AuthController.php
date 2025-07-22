@@ -406,7 +406,7 @@ class AuthController extends Controller
             ], 404);
         }
 
-        $user->avatar = $user->avatar != null ? $user->avatar : 'https://ui-avatars.com/api/?background=random&name=' . $user->name;
+        $user->avatar = $user->avatar != null ? $user->avatar : 'https://ui-avatars.com/api/?background=random&name=' . $user->full_name;
 
         return response()->json([
             'status' => true,

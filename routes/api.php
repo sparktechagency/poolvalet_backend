@@ -1,11 +1,13 @@
 <?php
 
-use App\Http\Controllers\Admin\CategoryController;
-use App\Http\Controllers\Admin\QuoteListingController;
-use App\Http\Controllers\Admin\SubscriptionController;
-use App\Http\Controllers\Admin\UserManageController;
+use App\Http\Controllers\Api\Admin\CategoryController;
+use App\Http\Controllers\Api\Admin\PageController;
+use App\Http\Controllers\Api\Admin\ProfileController;
+use App\Http\Controllers\Api\Admin\QuoteListingController;
+use App\Http\Controllers\Api\Admin\SubscriptionController;
+use App\Http\Controllers\Api\Admin\UserManageController;
 use App\Http\Controllers\Api\Auth\AuthController;
-use App\Http\Controllers\User\QuoteController;
+use App\Http\Controllers\Api\User\QuoteController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -40,9 +42,14 @@ Route::middleware('auth:api')->group(function () {
         Route::put('/edit-category/{id?}', [CategoryController::class, 'editCategory']);
         Route::delete('/delete-category/{id?}', [CategoryController::class, 'deleteCategory']);
 
-        // settings
+        // subscriptions
         Route::get('/get-subscriptions', [SubscriptionController::class, 'getSubscriptions']);
         Route::put('/update-subscription/{id}', [SubscriptionController::class, 'updateSubscription']);
+
+        // settings
+        Route::patch('/update-profile', [ProfileController::class, 'updateProfile']);
+        Route::post('/create-page', [PageController::class, 'createPage']);
+        Route::get('/get-page', [PageController::class, 'getPage']);
     });
 
     // COMPANY
