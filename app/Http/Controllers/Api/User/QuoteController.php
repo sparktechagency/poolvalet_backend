@@ -84,7 +84,7 @@ class QuoteController extends Controller
             'is_paid' => false,
         ]);
 
-        // $quote->photos = json_decode($quote->photos, true);
+        $quote->photos = json_decode($quote->photos, true);
 
         return response()->json([
             'message' => 'Quote created successfully.',
@@ -137,6 +137,60 @@ class QuoteController extends Controller
             'quotes' => $quotes
         ]);
     }
+
+    public function viewQuote($id = null)
+    {
+        $quote = Quote::find($id);
+
+        if (!$quote) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Quote not found.',
+            ], 404);
+        }
+
+        $decoded = json_decode($quote->photos, true);
+        if (is_string($decoded)) {
+            $decoded = json_decode($decoded, true);
+        }
+        $quote->photos = $decoded;
+
+        return response()->json([
+            'status' => true,
+            'message' => 'View quote',
+            'data' => $quote,
+        ]);
+    }
+
+    public function deleteQuote($id = null)
+    {
+        $quote = Quote::find($id);
+
+        if (!$quote) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Quote not found.'
+            ], 404);
+        }
+
+        // 🔒 Check: Logged-in user কি এই quote-এর মালিক?
+        if ($quote->user_id !== Auth::id()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Unauthorized to delete this quote.'
+            ], 403);
+        }
+
+        // ✅ Delete quote
+        $quote->delete();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Quote deleted successfully.'
+        ]);
+    }
+
+
 
 
 }

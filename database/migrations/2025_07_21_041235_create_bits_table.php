@@ -13,7 +13,7 @@ return new class extends Migration {
         Schema::create('bits', function (Blueprint $table) {
             $table->id();
             $table->foreignId('quote_id')->constrained('quotes')->cascadeOnDelete();
-            $table->unsignedInteger('user_id');
+            $table->unsignedInteger('provider_id');
             $table->string('provider_name');
             $table->decimal('price_offered',10,2);
             $table->unsignedInteger('rating');

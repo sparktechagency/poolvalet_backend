@@ -59,8 +59,14 @@ Route::middleware('auth:api')->group(function () {
 
     // USER
     Route::middleware('user')->prefix('user')->group(function () {
+        // quote
         Route::post('/create-quote', [QuoteController::class, 'createQuote']);
         Route::get('/get-quotes', [QuoteController::class, 'getQuotes']);
         Route::get('/get-my-quotes', [QuoteController::class, 'getMyQuotes']);
+        Route::get('/view-quote/{id?}', [QuoteController::class, 'viewQuote']);
+        Route::delete('/delete-quote/{id?}', [QuoteController::class, 'deleteQuote']);
+
+        // get page
+         Route::get('/get-page', [PageController::class, 'getPage']);
     });
 });

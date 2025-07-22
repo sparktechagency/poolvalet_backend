@@ -19,7 +19,7 @@ class SubscriptionController extends Controller
         ]);
     }
 
-    public function updateSubscription(Request $request, $id)
+    public function updateSubscription(Request $request, $id = null)
     {
         $request->validate([
             'number_of_quotes' => 'nullable|integer|min:0',
@@ -31,7 +31,7 @@ class SubscriptionController extends Controller
             $subscription->update([
                 'number_of_quotes' => $request->number_of_quotes,
             ]);
-        } 
+        }
 
         return response()->json([
             'status' => true,
