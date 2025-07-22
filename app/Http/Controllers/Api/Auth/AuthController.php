@@ -213,7 +213,7 @@ class AuthController extends Controller
         }
 
         // Check account status
-        if ($user->status !== 'active') {
+        if ($user->status !== 'Active') {
             return response()->json([
                 'status' => false,
                 'message' => 'Your account is inactive. Please contact support.',

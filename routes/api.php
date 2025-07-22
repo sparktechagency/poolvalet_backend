@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\QuoteListingController;
+use App\Http\Controllers\Admin\SubscriptionController;
 use App\Http\Controllers\Admin\UserManageController;
 use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\User\QuoteController;
@@ -31,13 +32,17 @@ Route::middleware('auth:api')->group(function () {
         Route::get('/view-user/{id?}', [UserManageController::class, 'viewUser']);
 
         // quote listing
-        Route::get('/get-quote-listing',[QuoteListingController::class,'getQuoteListing']);
-        Route::get('/view-quote/{id?}',[QuoteListingController::class,'viewQuote']);
+        Route::get('/get-quote-listing', [QuoteListingController::class, 'getQuoteListing']);
+        Route::get('/view-quote/{id?}', [QuoteListingController::class, 'viewQuote']);
 
         // categories
-        Route::post('/add-category',[CategoryController::class,'addCategory']);
-        Route::put('/edit-category/{id?}',[CategoryController::class,'editCategory']);
-        Route::delete('/delete-category/{id?}',[CategoryController::class,'deleteCategory']);
+        Route::post('/add-category', [CategoryController::class, 'addCategory']);
+        Route::put('/edit-category/{id?}', [CategoryController::class, 'editCategory']);
+        Route::delete('/delete-category/{id?}', [CategoryController::class, 'deleteCategory']);
+
+        // settings
+        Route::get('/get-subscriptions', [SubscriptionController::class, 'getSubscriptions']);
+        Route::put('/update-subscription/{id}', [SubscriptionController::class, 'updateSubscription']);
     });
 
     // COMPANY

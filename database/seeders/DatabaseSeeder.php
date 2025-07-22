@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Subscription;
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -24,9 +25,17 @@ class DatabaseSeeder extends Seeder
             'full_name' => 'Admin',
             'email' => 'admin@gmail.com',
             'email_verified_at' => now(),
-            'password' => bcrypt('123456'),
+            'password' => bcrypt('12345678'),
             'role' => 'ADMIN',
-            'status' => 'active',
+            'status' => 'Active',
         ]);
+
+        $planList = ['Free plan', 'Basic plan', 'Standard plan', 'Premium plan'];
+
+        foreach ($planList as $plan) {
+            Subscription::create([
+                'plan_name' => $plan
+            ]);
+        }
     }
 }

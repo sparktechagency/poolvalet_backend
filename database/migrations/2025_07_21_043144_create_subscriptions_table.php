@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('subscriptions', function (Blueprint $table) {
             $table->id();
             $table->string('plan_name');
-            $table->unsignedInteger('number_of_quotes')->nullable();
+            $table->unsignedInteger('number_of_quotes')->default(0);
             $table->timestamps();
         });
     }
