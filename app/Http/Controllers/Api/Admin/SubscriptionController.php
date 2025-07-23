@@ -23,6 +23,7 @@ class SubscriptionController extends Controller
     {
         $request->validate([
             'number_of_quotes' => 'nullable|integer|min:0',
+            'price' => 'nullable|integer|min:0',
         ]);
 
         $subscription = Subscription::where('id', $id)->first();
@@ -30,6 +31,7 @@ class SubscriptionController extends Controller
         if ($subscription) {
             $subscription->update([
                 'number_of_quotes' => $request->number_of_quotes,
+                'price' => $request->price,
             ]);
         }
 

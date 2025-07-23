@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('plan_name');
             $table->unsignedInteger('number_of_quotes')->default(0);
+            $table->decimal('price',10,2)->default(0);
             $table->timestamps();
         });
     }
