@@ -15,4 +15,9 @@ class Quote extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function bids()
+    {
+        return $this->hasMany(Bid::class);
+    }
 }

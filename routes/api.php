@@ -8,6 +8,9 @@ use App\Http\Controllers\Api\Admin\SubscriptionController;
 use App\Http\Controllers\Api\Admin\UserManageController;
 use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\User\QuoteController;
+use App\Http\Controllers\Api\Provider\BrowseQuoteController;
+use App\Http\Controllers\Api\Provider\MyServiceController;
+use App\Http\Controllers\Api\User\BidController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -54,17 +57,31 @@ Route::middleware('auth:api')->group(function () {
 
     // COMPANY
     Route::middleware('provider')->prefix('provider')->group(function () {
-        //
+        // browse quotes
+        Route::get('/browse-quotes', [BrowseQuoteController::class,'browseQuotes']);
+        Route::get('/view-browse-quote/{id?}', [BrowseQuoteController::class,'viewBrowseQuote']);
+        Route::post('/accept-budget', [BrowseQuoteController::class,'acceptBudget']);
+        Route::post('/apply-bid', [BrowseQuoteController::class,'applyBid']);
+
+        // my services
+        Route::get('/get-my-service-quotes',[MyServiceController::class,'getMyServiceQuotes']);
     });
 
     // USER
     Route::middleware('user')->prefix('user')->group(function () {
-        // quote
+        // quotes
         Route::post('/create-quote', [QuoteController::class, 'createQuote']);
         Route::get('/get-quotes', [QuoteController::class, 'getQuotes']);
+
+        // my quote
         Route::get('/get-my-quotes', [QuoteController::class, 'getMyQuotes']);
         Route::get('/view-quote/{id?}', [QuoteController::class, 'viewQuote']);
         Route::delete('/delete-quote/{id?}', [QuoteController::class, 'deleteQuote']);
+
+        // bids
+        Route::get('get-check-bids',[BidController::class,'getCheckBids']);
+        Route::get('get-accepted-bids',[BidController::class,'getAcceptedBids']);
+        Route::patch('accept-request',[BidController::class,'acceptRequest']);
 
         // get page
          Route::get('/get-page', [PageController::class, 'getPage']);
