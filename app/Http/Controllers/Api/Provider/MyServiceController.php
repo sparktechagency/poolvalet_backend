@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Auth;
 
 class MyServiceController extends Controller
 {
-    public function getMyServiceQuotes(Request $request)
+    public function myServiceQuotes(Request $request)
     {
         $userId = Auth::id();
 
@@ -21,6 +21,7 @@ class MyServiceController extends Controller
             }
         ])
             ->where('provider_id', $userId)
+            ->where('bid_status', 'Public')
             ->get()
             ->filter(function ($bid) {
                 return $bid->quote !== null;

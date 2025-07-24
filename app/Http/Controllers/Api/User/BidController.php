@@ -13,7 +13,8 @@ class BidController extends Controller
     {
         $bids = Bid::where(function ($query) {
             $query->where('status', '!=', 'Accepted')
-                ->orWhereNull('status');
+                ->where('bid_status', 'Public');
+
         })->get();
 
         return response()->json([
@@ -25,7 +26,9 @@ class BidController extends Controller
 
     public function getAcceptedBids(Request $request)
     {
-        $bids = Bid::where('status', 'Accepted')->get();
+        $bids = Bid::where('status', 'Accepted')
+            ->where('bid_status', 'Public')
+            ->get();
 
         return response()->json([
             'status' => true,
@@ -34,12 +37,13 @@ class BidController extends Controller
         ]);
     }
 
-    public function acceptRequest(Request $request){
+    public function acceptRequest(Request $request)
+    {
         $quote = Quote::where('id', $request->quote_id)->first();
         if (!$quote) {
             return response()->json([
-                'status'=> false,
-                'message'=> 'Quote not found'
+                'status' => false,
+                'message' => 'Quote not found'
             ]);
         }
 
@@ -47,9 +51,9 @@ class BidController extends Controller
         $quote->save();
 
         return response()->json([
-            'status'=> true,
-            'message'=> 'Accept request successfully',
-            'data'=> $quote
+            'status' => true,
+            'message' => 'Accept request successfully',
+            'data' => $quote
         ]);
     }
 

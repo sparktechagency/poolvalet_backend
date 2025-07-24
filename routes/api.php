@@ -62,9 +62,12 @@ Route::middleware('auth:api')->group(function () {
         Route::get('/view-browse-quote/{id?}', [BrowseQuoteController::class,'viewBrowseQuote']);
         Route::post('/accept-budget', [BrowseQuoteController::class,'acceptBudget']);
         Route::post('/apply-bid', [BrowseQuoteController::class,'applyBid']);
+        Route::get('/get-your-bid', [BrowseQuoteController::class,'getYourBid']);
+        Route::put('/edit-your-bid', [BrowseQuoteController::class,'editYourBid']);
+        Route::patch('/make-final-save-your-bid', [BrowseQuoteController::class,'makeFinalSaveYourBid']);
 
         // my services
-        Route::get('/get-my-service-quotes',[MyServiceController::class,'getMyServiceQuotes']);
+        Route::get('/my-service-quotes',[MyServiceController::class,'myServiceQuotes']);
     });
 
     // USER

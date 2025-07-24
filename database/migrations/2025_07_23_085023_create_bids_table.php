@@ -18,6 +18,7 @@ return new class extends Migration
             $table->decimal('price_offered',10,2);
             $table->text('quote_outline')->nullable();
             $table->enum('status', ['Accepted'])->nullable();
+            $table->enum('bid_status', ['Public','Private'])->default('Private');
             $table->timestamps();
         });
     }
