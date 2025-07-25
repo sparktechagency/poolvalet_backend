@@ -11,16 +11,33 @@ class UserManageController extends Controller
     public function getUsers(Request $request)
     {
         $perPage = $request->get('per_page', 10);
+        $search = $request->get('search');
 
-        $users = User::where('role', '!=', 'ADMIN')->paginate($perPage);
+        // ✅ Query builder শুরু
+        $query = User::where('role', '!=', 'ADMIN')->select('id', 'full_name', 'email', 'avatar', 'role');
 
+        // ✅ Search functionality: name বা email
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('full_name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        $users = $query->latest()->paginate($perPage);
+
+        // ✅ Format each user
         foreach ($users as $user) {
-            $user->avatar = $user->avatar != null ? $user->avatar : 'https://ui-avatars.com/api/?background=random&name=' . $user->full_name;
+            $user->role = $user->role === 'USER' ? 'HOME OWNER' : 'PROVIDER';
+
+            $user->avatar = $user->avatar
+                ? asset($user->avatar)
+                : 'https://ui-avatars.com/api/?background=random&name=' . urlencode($user->full_name);
         }
 
         return response()->json([
             'status' => true,
-            'message' => 'Get all users',
+            'message' => 'User list fetched successfully.',
             'users' => $users
         ]);
     }
@@ -49,8 +66,14 @@ class UserManageController extends Controller
 
     public function viewUser($id = null)
     {
-        $user = User::with('profile')->where('id', $id)->where('role', '!=', 'ADMIN')->first();
+        // User fetch with profile relationship, excluding admin role
+        $user = User::with('profile')
+            ->where('id', $id)
+            ->where('role', '!=', 'ADMIN')
+            ->select('id', 'full_name', 'email', 'avatar', 'role')
+            ->first();
 
+        // User not found
         if (!$user) {
             return response()->json([
                 'status' => false,
@@ -58,11 +81,20 @@ class UserManageController extends Controller
             ], 404);
         }
 
-        $user->avatar = $user->avatar != null ? $user->avatar : 'https://ui-avatars.com/api/?background=random&name=' . $user->full_name;
+        $user->avatar = $user->avatar
+            ? asset($user->avatar)
+            : 'https://ui-avatars.com/api/?background=random&name=' . urlencode($user->full_name);
+
+        // Set readable role name
+        $user->role = match ($user->role) {
+            'USER' => 'HOME OWNER',
+            'PROVIDER' => 'PROVIDER',
+            default => ucfirst(strtolower($user->role)),
+        };
 
         return response()->json([
             'status' => true,
-            'message' => 'View user with profile',
+            'message' => 'User with profile loaded successfully.',
             'user' => $user
         ]);
     }

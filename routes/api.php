@@ -9,10 +9,11 @@ use App\Http\Controllers\Api\Admin\UserManageController;
 use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\User\QuoteController;
 use App\Http\Controllers\Api\Provider\BrowseQuoteController;
+use App\Http\Controllers\Api\Provider\BuyPlanController;
 use App\Http\Controllers\Api\Provider\MyServiceController;
-use App\Http\Controllers\Api\Provider\PaymentController;
 use App\Http\Controllers\Api\Provider\StripeConnectController;
 use App\Http\Controllers\Api\User\BidController;
+use App\Http\Controllers\Api\User\PaymentController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -44,12 +45,15 @@ Route::middleware('auth:api')->group(function () {
 
         // categories
         Route::post('/add-category', [CategoryController::class, 'addCategory']);
+        Route::get('/get-categories', [CategoryController::class, 'getCategories']);
+        Route::get('/view-category/{id?}', [CategoryController::class, 'viewCategory']);
         Route::put('/edit-category/{id?}', [CategoryController::class, 'editCategory']);
         Route::delete('/delete-category/{id?}', [CategoryController::class, 'deleteCategory']);
 
         // subscriptions
         Route::get('/get-subscriptions', [SubscriptionController::class, 'getSubscriptions']);
         Route::put('/update-subscription/{id}', [SubscriptionController::class, 'updateSubscription']);
+        Route::get('/view-subscription/{id}', [SubscriptionController::class, 'viewSubscription']);
 
         // settings
         Route::patch('/update-profile', [ProfileController::class, 'updateProfile']);
@@ -71,14 +75,12 @@ Route::middleware('auth:api')->group(function () {
         // my services
         Route::get('/my-service-quotes', [MyServiceController::class, 'myServiceQuotes']);
 
-        // payment
-        Route::post('/payment-intent', [PaymentController::class, 'paymentIntent']);
-        Route::post('/payment-success', [PaymentController::class, 'paymentSuccess']);
+        // buy plan
+        Route::post('/buy-plan-intent', [BuyPlanController::class, 'buyPlanIntent']);
+        Route::post('/buy-plan-success', [BuyPlanController::class, 'buyPlanSuccess']);
 
         // connented account
         Route::post('/create-connected-account', [StripeConnectController::class, 'createConnectedAccount']);
-        Route::get('/stripe/success', [StripeConnectController::class, 'onboardSuccess'])->name('stripe.success');
-        Route::get('/stripe/refresh', [StripeConnectController::class, 'onboardRefresh'])->name('stripe.refresh');
     });
 
     // USER
@@ -99,5 +101,9 @@ Route::middleware('auth:api')->group(function () {
 
         // get page
         Route::get('/get-page', [PageController::class, 'getPage']);
+
+        // payment
+        Route::post('/create-payment-intent', [PaymentController::class, 'createPaymentIntent']);
+        Route::post('/payment-success', [PaymentController::class, 'paymentSuccess']);
     });
 });

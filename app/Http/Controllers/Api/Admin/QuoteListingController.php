@@ -12,7 +12,12 @@ class QuoteListingController extends Controller
     {
         $perPage = $request->get('per_page', 10);
 
-        $quotes = Quote::with('user')
+        $quotes = Quote::with([
+            'user' => function ($q) {
+                $q->select('id', 'full_name', 'avatar');
+            }
+        ])
+            ->select('id', 'user_id', 'service', 'expected_budget')
             ->orderBy('created_at', 'desc')
             ->paginate($perPage);
 
@@ -26,6 +31,10 @@ class QuoteListingController extends Controller
             $quote->photos = $decoded;
         }
 
+        $quote->user->avatar = $quote->user->avatar
+                ? asset($quote->user->avatar)
+                : 'https://ui-avatars.com/api/?background=random&name=' . urlencode($quote->user->full_name);
+
         return response()->json([
             'status' => true,
             'message' => 'Get quote listing',
@@ -35,7 +44,7 @@ class QuoteListingController extends Controller
 
     public function viewQuote($id = null)
     {
-        $quote = Quote::with('user')->find($id);
+        $quote = Quote::find($id);
 
         if (!$quote) {
             return response()->json([
@@ -46,7 +55,7 @@ class QuoteListingController extends Controller
 
         return response()->json([
             'status' => true,
-            'message'=> 'View quote',
+            'message' => 'View quote',
             'quote' => $quote
         ]);
     }

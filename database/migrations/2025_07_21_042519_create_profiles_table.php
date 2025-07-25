@@ -15,8 +15,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             $table->unsignedInteger('completed_services')->default(0);
-            $table->decimal('total_earnings',10,2)->nullable();
-            $table->decimal('total_pay',10,2)->nullable();
+            $table->decimal('total_earnings',10,2)->default(0);
+            $table->decimal('total_pay',10,2)->default(0);
             $table->string('display_name')->nullable();
             $table->string('user_name')->nullable();
             $table->string('email')->nullable();

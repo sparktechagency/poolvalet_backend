@@ -42,4 +42,20 @@ class SubscriptionController extends Controller
         ]);
     }
 
+    public function viewSubscription($id = null)
+    {
+        $subscription = Subscription::find($id);
+        if (!$subscription) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Subscription not found'
+            ]);
+        }
+        return response()->json([
+            'status' => true,
+            'message' => 'View subscription',
+            'data' => $subscription
+        ]);
+    }
+
 }

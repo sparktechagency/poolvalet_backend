@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Profile;
 use App\Models\Subscription;
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -21,7 +22,7 @@ class DatabaseSeeder extends Seeder
         //     'email' => 'test@example.com',
         // ]);
 
-        User::create([
+        $admin = User::create([
             'full_name' => 'Admin',
             'email' => 'admin@gmail.com',
             'email_verified_at' => now(),
@@ -30,12 +31,21 @@ class DatabaseSeeder extends Seeder
             'status' => 'Active',
         ]);
 
-        $planList = ['Free plan', 'Basic plan', 'Standard plan', 'Premium plan'];
+        Profile::create([
+            'user_id' => $admin->id,
+        ]);
 
-        foreach ($planList as $plan) {
+        $planList = ['Free plan', 'Basic plan', 'Standard plan', 'Premium plan'];
+        $quoteList = [2, 5, 10, 50];
+        $priceList = [0.00, 0.99, 1.99, 5.99];
+
+        for ($i = 0; $i < count($planList); $i++) {
             Subscription::create([
-                'plan_name' => $plan
+                'plan_name' => $planList[$i],
+                'number_of_quotes' => $quoteList[$i],
+                'price' => $priceList[$i],
             ]);
         }
+
     }
 }

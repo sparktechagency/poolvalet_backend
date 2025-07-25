@@ -3,74 +3,172 @@
 namespace App\Http\Controllers\Api\Provider;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 use Stripe\Account;
 use Stripe\AccountLink;
 use Stripe\Stripe;
 
 class StripeConnectController extends Controller
 {
-    public function createConnectedAccount()
+    // public function createConnectedAccount()
+    // {
+    //     Stripe::setApiKey(env('STRIPE_SECRET'));
+
+    //     $user = Auth::user();
+
+    //     // Stripe account already exists?
+    //     if ($user->stripe_account_id) {
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => 'You already have a connected Stripe account.',
+    //             'stripe_account_id' => $user->stripe_account_id
+    //         ]);
+    //     }
+
+    //     // ✅ Create new Express account
+    //     $account = Account::create([
+    //         'type' => 'express',
+    //         'country' => 'US',
+    //         'email' => $user->email,
+    //         'capabilities' => [
+    //             'card_payments' => ['requested' => true],
+    //             'transfers' => ['requested' => true],
+    //         ],
+    //     ]);
+
+    //     // ✅ Store account ID to user
+    //     $user->update([
+    //         'stripe_account_id' => $account->id,
+    //     ]);
+
+    //     // ✅ Create onboarding link
+    //     $accountLink = AccountLink::create([
+    //         'account' => $account->id,
+    //         'refresh_url' => route('stripe.refresh'),
+    //         'return_url' => route('stripe.success'),
+    //         'type' => 'account_onboarding',
+    //     ]);
+
+    //     // ✅ Redirect to onboarding
+    //     return response()->json([
+    //         'status'=> true,
+    //         'message'=> 'Your connected account link',
+    //         'link' => $accountLink->url
+    //     ]);
+    // }
+
+
+    public function createConnectedAccount(Request $request)
     {
-        Stripe::setApiKey(env('STRIPE_SECRET'));
+        // ✅ Validate email
+        // $validator = Validator::make($request->all(), [
+        //     'email' => 'required|email',
+        // ]);
 
-        $user = Auth::user();
+        // if ($validator->fails()) {
+        //     return response()->json([
+        //         'status' => false,
+        //         'message' => $validator->errors()
+        //     ], 422);
+        // }
 
-        // Stripe account already exists?
-        if ($user->stripe_account_id) {
+        $email = Auth::user()->email;
+
+        try {
+            // ✅ Set Stripe API key
+            Stripe::setApiKey(env('STRIPE_SECRET'));
+
+            // ✅ Create Express Account
+            $account = Account::create([
+                'type' => 'express',
+                'country' => 'US',
+                // 'email' => $request->email,
+                'email' => $email,
+                'capabilities' => [
+                    'card_payments' => ['requested' => true],
+                    'transfers' => ['requested' => true],
+                ],
+            ]);
+
+            // ✅ Build return URL
+            $customReturnUrl = url("/connected?status=success&email={$email}&account_id={$account->id}");
+
+            // ✅ Create onboarding link
+            $accountLink = AccountLink::create([
+                'account' => $account->id,
+                'refresh_url' => url('/vendor/reauth'),
+                'return_url' => $customReturnUrl,
+                'type' => 'account_onboarding',
+            ]);
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Stripe Connect account created successfully',
+                'onboarding_url' => $accountLink->url,
+                'stripe_account_id' => $account->id,
+            ]);
+        } catch (Exception $e) {
+            Log::error('Stripe Account Creation Error: ' . $e->getMessage());
+
             return response()->json([
                 'status' => false,
-                'message' => 'You already have a connected Stripe account.',
-                'stripe_account_id' => $user->stripe_account_id
-            ]);
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function handleConnectedAccount(Request $request)
+    {
+        $email = $request->email;
+        $accountId = $request->account_id;
+
+        if (!$email || !$accountId) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Missing required parameters.'
+            ], 400);
         }
 
-        // ✅ Create new Express account
-        $account = Account::create([
-            'type' => 'express',
-            'country' => 'US',
-            'email' => $user->email,
-            'capabilities' => [
-                'card_payments' => ['requested' => true],
-                'transfers' => ['requested' => true],
-            ],
-        ]);
+        try {
+            Stripe::setApiKey(env('STRIPE_SECRET'));
 
-        // ✅ Store account ID to user
-        $user->update([
-            'stripe_account_id' => $account->id,
-        ]);
+            // Get account status from Stripe
+            $account = Account::retrieve($accountId);
 
-        // ✅ Create onboarding link
-        $accountLink = AccountLink::create([
-            'account' => $account->id,
-            'refresh_url' => route('stripe.refresh'),
-            'return_url' => route('stripe.success'),
-            'type' => 'account_onboarding',
-        ]);
+            if (!$account->charges_enabled) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Stripe account is not yet verified. Please complete onboarding.',
+                    'stripe_account' => $account,
+                ]);
+            }
 
-        // ✅ Redirect to onboarding
-        return response()->json([
-            'status'=> true,
-            'message'=> 'Your connected account link',
-            'link' => $accountLink->url
-        ]);
+            // Update user in DB
+            $user = User::where('email', $email)->first();
+            if ($user) {
+                $user->stripe_account_id = $accountId;
+                $user->save();
+            }
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Stripe account connected and verified successfully.',
+                'stripe_account' => $account,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Stripe Connected Account Error: ' . $e->getMessage());
+
+            return response()->json([
+                'status' => false,
+                'message' => 'Something went wrong.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
-    public function onboardSuccess(Request $request)
-    {
-        return response()->json([
-            'status' => true,
-            'message' => 'Stripe onboarding completed successfully.',
-        ]);
-    }
-
-    public function onboardRefresh(Request $request)
-    {
-        return response()->json([
-            'status' => false,
-            'message' => 'Stripe onboarding was canceled or needs to be restarted.',
-        ]);
-    }
 }

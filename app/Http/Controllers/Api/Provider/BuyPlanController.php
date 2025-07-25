@@ -13,8 +13,7 @@ use Illuminate\Support\Facades\Validator;
 use Stripe\PaymentIntent;
 use Stripe\Stripe;
 
-
-class PaymentController extends Controller
+class BuyPlanController extends Controller
 {
 
     // public function PaymentIntent(Request $request)
@@ -70,8 +69,6 @@ class PaymentController extends Controller
 
     // }
 
-
-
     public function paymentIntent(Request $request)
     {
         // ✅ Check if user already has an Active plan
@@ -95,7 +92,7 @@ class PaymentController extends Controller
 
         if ($validator->fails()) {
             return response()->json([
-                'ok' => false,
+                'status' => false,
                 'message' => $validator->errors()
             ], 422);
         }
@@ -114,13 +111,13 @@ class PaymentController extends Controller
             ]);
 
             return response()->json([
-                'ok' => true,
+                'status' => true,
                 'message' => 'Payment intent successfully created',
                 'data' => $paymentIntent,
             ], 201);
         } catch (Exception $e) {
             return response()->json([
-                'ok' => false,
+                'status' => false,
                 'error' => $e->getMessage()
             ], 500);
         }
@@ -199,7 +196,4 @@ class PaymentController extends Controller
         }
 
     }
-
-    
-
 }

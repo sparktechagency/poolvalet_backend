@@ -37,6 +37,37 @@ class CategoryController extends Controller
         ]);
     }
 
+    public function getCategories($id = null)
+    {
+
+        $categories = Category::all();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Get all categories',
+            'data' => $categories
+        ]);
+    }
+
+    public function viewCategory($id = null)
+    {
+
+        $category = Category::find($id);
+
+        if(!$category){
+            return response()->json([
+                'status'=> false,
+                'message'=> 'Category not found'
+            ]);
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => 'View category',
+            'data' => $category
+        ]);
+    }
+
     public function editCategory(Request $request, $id)
     {
         $category = Category::find($id);
