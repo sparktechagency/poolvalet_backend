@@ -10,6 +10,8 @@ use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\User\QuoteController;
 use App\Http\Controllers\Api\Provider\BrowseQuoteController;
 use App\Http\Controllers\Api\Provider\MyServiceController;
+use App\Http\Controllers\Api\Provider\PaymentController;
+use App\Http\Controllers\Api\Provider\StripeConnectController;
 use App\Http\Controllers\Api\User\BidController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -58,16 +60,25 @@ Route::middleware('auth:api')->group(function () {
     // COMPANY
     Route::middleware('provider')->prefix('provider')->group(function () {
         // browse quotes
-        Route::get('/browse-quotes', [BrowseQuoteController::class,'browseQuotes']);
-        Route::get('/view-browse-quote/{id?}', [BrowseQuoteController::class,'viewBrowseQuote']);
-        Route::post('/accept-budget', [BrowseQuoteController::class,'acceptBudget']);
-        Route::post('/apply-bid', [BrowseQuoteController::class,'applyBid']);
-        Route::get('/get-your-bid', [BrowseQuoteController::class,'getYourBid']);
-        Route::put('/edit-your-bid', [BrowseQuoteController::class,'editYourBid']);
-        Route::patch('/make-final-save-your-bid', [BrowseQuoteController::class,'makeFinalSaveYourBid']);
+        Route::get('/browse-quotes', [BrowseQuoteController::class, 'browseQuotes']);
+        Route::get('/view-browse-quote/{id?}', [BrowseQuoteController::class, 'viewBrowseQuote']);
+        Route::post('/accept-budget', [BrowseQuoteController::class, 'acceptBudget']);
+        Route::post('/apply-bid', [BrowseQuoteController::class, 'applyBid']);
+        Route::get('/get-your-bid', [BrowseQuoteController::class, 'getYourBid']);
+        Route::put('/edit-your-bid', [BrowseQuoteController::class, 'editYourBid']);
+        Route::patch('/make-final-save-your-bid', [BrowseQuoteController::class, 'makeFinalSaveYourBid']);
 
         // my services
-        Route::get('/my-service-quotes',[MyServiceController::class,'myServiceQuotes']);
+        Route::get('/my-service-quotes', [MyServiceController::class, 'myServiceQuotes']);
+
+        // payment
+        Route::post('/payment-intent', [PaymentController::class, 'paymentIntent']);
+        Route::post('/payment-success', [PaymentController::class, 'paymentSuccess']);
+
+        // connented account
+        Route::post('/create-connected-account', [StripeConnectController::class, 'createConnectedAccount']);
+        Route::get('/stripe/success', [StripeConnectController::class, 'onboardSuccess'])->name('stripe.success');
+        Route::get('/stripe/refresh', [StripeConnectController::class, 'onboardRefresh'])->name('stripe.refresh');
     });
 
     // USER
@@ -82,11 +93,11 @@ Route::middleware('auth:api')->group(function () {
         Route::delete('/delete-quote/{id?}', [QuoteController::class, 'deleteQuote']);
 
         // bids
-        Route::get('get-check-bids',[BidController::class,'getCheckBids']);
-        Route::get('get-accepted-bids',[BidController::class,'getAcceptedBids']);
-        Route::patch('accept-request',[BidController::class,'acceptRequest']);
+        Route::get('get-check-bids', [BidController::class, 'getCheckBids']);
+        Route::get('get-accepted-bids', [BidController::class, 'getAcceptedBids']);
+        Route::patch('accept-request', [BidController::class, 'acceptRequest']);
 
         // get page
-         Route::get('/get-page', [PageController::class, 'getPage']);
+        Route::get('/get-page', [PageController::class, 'getPage']);
     });
 });

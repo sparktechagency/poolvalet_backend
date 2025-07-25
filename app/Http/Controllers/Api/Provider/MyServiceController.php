@@ -22,6 +22,7 @@ class MyServiceController extends Controller
         ])
             ->where('provider_id', $userId)
             ->where('bid_status', 'Public')
+            ->latest()
             ->get()
             ->filter(function ($bid) {
                 return $bid->quote !== null;
