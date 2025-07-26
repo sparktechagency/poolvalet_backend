@@ -69,7 +69,7 @@ class BuyPlanController extends Controller
 
     // }
 
-    public function paymentIntent(Request $request)
+    public function buyPlanIntent(Request $request)
     {
         // ✅ Check if user already has an Active plan
         $activePlan = Plan::where('provider_id', Auth::id())
@@ -123,12 +123,22 @@ class BuyPlanController extends Controller
         }
     }
 
-    public function paymentSuccess(Request $request)
+    public function buyPlanSuccess(Request $request)
     {
+
 
         $subscription = Subscription::where('id', $request->subscription_id)->first();
 
         if ($subscription->id == '1') {
+            $check_free_plan = Plan::where('provider_id', Auth::id())->pluck('subscription_id')->toArray();
+
+            if (in_array(1, $check_free_plan)) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Your already used free plan. Please buy a plan.'
+                ]);
+            }
+
             $plan = Plan::Create([
                 'payment_intent_id' => $request->payment_intent_id ?? null,
                 'provider_id' => Auth::id(),
@@ -195,5 +205,27 @@ class BuyPlanController extends Controller
             ], 500);
         }
 
+    }
+
+    public function currentPlan(Request $request){
+        // ✅ Check if user already has an Active plan
+        $current_plan = Plan::where('provider_id', Auth::id())
+            ->where('status', 'Active')
+            ->first();
+
+            if (!$current_plan) {
+                return response()->json([
+                    'status'=> false,
+                    'message'=> 'You have no current plan.'
+                ]);
+            }
+
+        if ($current_plan) {
+            return response()->json([
+                'status' => true,
+                'message' => 'You current plan.',
+                'current_plan' => $current_plan
+            ]);
+        }
     }
 }

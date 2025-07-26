@@ -22,7 +22,7 @@ return new class extends Migration {
             $table->time('time');
             $table->string('zip_code');
             $table->string('address');
-            $table->string('expected_budget')->nullable();
+            $table->decimal('expected_budget', 10, 2)->nullable()->default(0);
             $table->json('photos')->nullable();
             $table->string('video')->nullable();
             $table->enum('status', ['Pending', 'In progress', 'Completed'])->default('Pending');

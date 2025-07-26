@@ -17,10 +17,16 @@ class QuoteListingController extends Controller
                 $q->select('id', 'full_name', 'avatar');
             }
         ])
-            ->select('id', 'user_id', 'service', 'expected_budget')
+            ->select('id', 'user_id', 'service', 'expected_budget', 'photos')
             ->orderBy('created_at', 'desc')
             ->paginate($perPage);
 
+        if ($quotes->isEmpty() || $quotes->count() == 0) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Quotes not found'
+            ]);
+        }
 
         foreach ($quotes as $quote) {
             $decoded = json_decode($quote->photos, true);
@@ -32,8 +38,8 @@ class QuoteListingController extends Controller
         }
 
         $quote->user->avatar = $quote->user->avatar
-                ? asset($quote->user->avatar)
-                : 'https://ui-avatars.com/api/?background=random&name=' . urlencode($quote->user->full_name);
+            ? asset($quote->user->avatar)
+            : 'https://ui-avatars.com/api/?background=random&name=' . urlencode($quote->user->full_name);
 
         return response()->json([
             'status' => true,

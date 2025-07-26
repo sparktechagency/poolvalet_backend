@@ -14,4 +14,9 @@ class Bid extends Model
     {
         return $this->belongsTo(Quote::class);
     }
+
+    public function provider()
+    {
+        return $this->belongsTo(User::class, 'provider_id');
+    }
 }

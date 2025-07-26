@@ -20,4 +20,16 @@ class Quote extends Model
     {
         return $this->hasMany(Bid::class);
     }
+
+    // // Quote.php model এ
+    // public function getPhotosAttribute($value)
+    // {
+    //     $decoded = json_decode($value, true);
+
+    //     if (is_string($decoded)) {
+    //         $decoded = json_decode($decoded, true);
+    //     }
+
+    //     return $decoded;
+    // }
 }

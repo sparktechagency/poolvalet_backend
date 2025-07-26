@@ -23,7 +23,7 @@ class QuoteController extends Controller
             'time' => 'required|date_format:H:i',
             'zip_code' => 'required|string|max:5',
             'address' => 'required|string|max:255',
-            'expected_budget' => 'nullable|string|max:255',
+            'expected_budget' => 'nullable|numeric|min:0',
 
             'photos' => 'nullable|array|max:4', // Max 4 files
             'photos.*' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
@@ -77,7 +77,7 @@ class QuoteController extends Controller
             'time' => $time,
             'zip_code' => $request->zip_code,
             'address' => $request->address,
-            'expected_budget' => $request->expected_budget ?? null,
+            'expected_budget' => $request->expected_budget ?? 0,
             'photos' => json_encode($photoPaths),
             'video' => $videoPath,
             'status' => 'Pending',
@@ -107,6 +107,10 @@ class QuoteController extends Controller
             }
 
             $quote->photos = $decoded;
+
+            $quote->user->avatar = $quote->user->avatar
+                ? asset($quote->user->avatar)
+                : 'https://ui-avatars.com/api/?background=random&name=' . urlencode($quote->user->full_name);
         }
 
         return response()->json([
@@ -116,19 +120,22 @@ class QuoteController extends Controller
         ]);
     }
 
-    public function getMyQuotes()
+    public function getMyQuotes(Request $request)
     {
-        $quotes = Quote::where('user_id', Auth::id())
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $query = Quote::where('user_id', Auth::id());
+
+        // ✅ Optional status filter
+        if ($request->has('status') && in_array($request->status, ['Pending', 'In progress', 'Completed'])) {
+            $query->where('status', $request->status);
+        }
+
+        $quotes = $query->orderBy('created_at', 'desc')
+            ->select('id', 'user_id', 'service_type', 'status', 'date', 'time')
+            ->paginate($request->per_page ?? 10);
 
         foreach ($quotes as $quote) {
-            $decoded = json_decode($quote->photos, true);
-            if (is_string($decoded)) {
-                $decoded = json_decode($decoded, true);
-            }
-
-            $quote->photos = $decoded;
+            $quote->scheduled_date = Carbon::createFromFormat('Y-m-d H:i:s', $quote->date . ' ' . $quote->time)
+                ->format('M d, Y h:i A');
         }
 
         return response()->json([

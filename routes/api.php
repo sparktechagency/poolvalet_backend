@@ -61,23 +61,27 @@ Route::middleware('auth:api')->group(function () {
         Route::get('/get-page', [PageController::class, 'getPage']);
     });
 
-    // COMPANY
+    // RPOVIDER
     Route::middleware('provider')->prefix('provider')->group(function () {
         // browse quotes
         Route::get('/browse-quotes', [BrowseQuoteController::class, 'browseQuotes']);
         Route::get('/view-browse-quote/{id?}', [BrowseQuoteController::class, 'viewBrowseQuote']);
         Route::post('/accept-budget', [BrowseQuoteController::class, 'acceptBudget']);
         Route::post('/apply-bid', [BrowseQuoteController::class, 'applyBid']);
+        Route::get('/bidding-lists', [BrowseQuoteController::class,'biddingLists']);
         Route::get('/get-your-bid', [BrowseQuoteController::class, 'getYourBid']);
         Route::put('/edit-your-bid', [BrowseQuoteController::class, 'editYourBid']);
         Route::patch('/make-final-save-your-bid', [BrowseQuoteController::class, 'makeFinalSaveYourBid']);
 
         // my services
         Route::get('/my-service-quotes', [MyServiceController::class, 'myServiceQuotes']);
+        Route::delete('/cancel-bid/{id?}', [MyServiceController::class, 'cancelBid']);
+        Route::get('/my-earnings', [MyServiceController::class, 'myEarnings']);
 
         // buy plan
         Route::post('/buy-plan-intent', [BuyPlanController::class, 'buyPlanIntent']);
         Route::post('/buy-plan-success', [BuyPlanController::class, 'buyPlanSuccess']);
+        Route::get('/current-plan', [BuyPlanController::class, 'currentPlan']);
 
         // connented account
         Route::post('/create-connected-account', [StripeConnectController::class, 'createConnectedAccount']);
@@ -98,6 +102,7 @@ Route::middleware('auth:api')->group(function () {
         Route::get('get-check-bids', [BidController::class, 'getCheckBids']);
         Route::get('get-accepted-bids', [BidController::class, 'getAcceptedBids']);
         Route::patch('accept-request', [BidController::class, 'acceptRequest']);
+        Route::patch('cancel-order', [BidController::class, 'cancelOrder']);
 
         // get page
         Route::get('/get-page', [PageController::class, 'getPage']);
