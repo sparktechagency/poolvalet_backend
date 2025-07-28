@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\User;
 
 use App\Http\Controllers\Controller;
 use App\Models\Bid;
+use App\Models\Profile;
 use App\Models\Quote;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -28,7 +29,7 @@ class BidController extends Controller
     {
         $bids = Bid::where('status', 'Accepted')
             ->where('bid_status', 'Public')
-            ->paginate($request->per_page ??10);
+            ->paginate($request->per_page ?? 10);
 
         return response()->json([
             'status' => true,
@@ -40,28 +41,24 @@ class BidController extends Controller
     public function acceptRequest(Request $request)
     {
         try {
-            $quote = Quote::where('id', $request->quote_id)->where('status','Pending')->first();
 
-            if (!$quote) {
-                return response()->json([
-                    'status' => false,
-                    'message' => 'Quote not found'
-                ]);
-            }
-
-            $bids_of_quote = Bid::where('quote_id', $request->quote_id)->where('bid_status','public')->first();
+            $bids_of_quote = Bid::where('id', $request->bid_id)->where('bid_status', 'public')->first();
 
             if ($bids_of_quote) {
                 $bids_of_quote->status = 'Accepted';
                 $bids_of_quote->save();
 
-                $quote->status = 'In progress';
-                $quote->save();
+                $bids_of_quote->quote->status = 'In progress';
+                $bids_of_quote->quote->save();
+
+                $profile = Profile::where('user_id', $bids_of_quote->quote->user_id)->first();
+
+                $profile->increment('order_accept');
 
                 return response()->json([
                     'status' => true,
                     'message' => 'Accept request successfully',
-                    'data' => $quote
+                    'data' => $bids_of_quote
                 ]);
             } else {
                 return response()->json([
@@ -82,7 +79,7 @@ class BidController extends Controller
     public function cancelOrder(Request $request)
     {
         try {
-            $quote = Quote::where('id', $request->quote_id)->where('status','In progress')->first();
+            $quote = Quote::where('id', $request->quote_id)->where('status', 'In progress')->first();
 
             if (!$quote) {
                 return response()->json([
@@ -91,19 +88,27 @@ class BidController extends Controller
                 ]);
             }
 
-            $bids_of_quote = Bid::where('quote_id', $request->quote_id)->where('bid_status','public')->first();
+            $bids_of_quote = Bid::where('quote_id', $request->quote_id)->where('bid_status', 'public')->first();
 
             if ($bids_of_quote) {
                 $bids_of_quote->status = 'Canceled';
                 $bids_of_quote->save();
 
-                $quote->status = 'Pending';
-                $quote->save();
+                $quote->delete();
+
+                $profile = Profile::where('user_id', $quote->user_id)->first();
+
+                $profile->increment('canceled_order');
+                if ($profile->order_accept > 0) {
+                    $profile->decrement('order_accept');
+                } else {
+                    $profile->order_accept = 0;
+                }
 
                 return response()->json([
                     'status' => true,
                     'message' => 'Order canceled successfully',
-                    'data' => $quote
+                    // 'data' => $quote
                 ]);
             } else {
                 return response()->json([

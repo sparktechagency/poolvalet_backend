@@ -33,7 +33,8 @@ class BrowseQuoteController extends Controller
                 $q->select('id', 'full_name', 'avatar');
             }
         ])
-            ->select('id', 'user_id', 'service', 'expected_budget')
+            ->select('id', 'user_id', 'service', 'expected_budget','status')
+            ->where('status','Pending')
             ->latest()->paginate($request->per_page ?? 10);
 
         // ✅ Format each user
@@ -52,7 +53,7 @@ class BrowseQuoteController extends Controller
 
     public function viewBrowseQuote(Request $request, $id = null)
     {
-        $quote = Quote::with('user.profile')->where('id', $id)->first();
+        $quote = Quote::with('user.profile')->where('id', $id)->where('status','Pending')->first();
 
         if (!$quote) {
             return response()->json([
@@ -77,6 +78,34 @@ class BrowseQuoteController extends Controller
 
     public function acceptBudget(Request $request)
     {
+
+        $check_plan = Plan::where('provider_id', Auth::id())->where('status','active')->first();
+
+        if (!$check_plan) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Please buy a plan'
+            ]);
+        }
+
+        // Plan must be active and have at least 1 quote left
+        if ($check_plan->status != 'Active' || $check_plan->total_quotes <= 0) {
+            return response()->json([
+                'status' => false,
+                'message' => 'You have no active plan or no remaining quotes. Please buy a plan.'
+            ]);
+        }
+
+        // Decrement quotes
+        $check_plan->decrement('total_quotes');
+
+
+        if ($check_plan->total_quotes <= 0) {
+            $check_plan->status = 'Inactive';
+            $check_plan->save();
+        }
+
+
         $quote = Quote::where('id', $request->quote_id)->first();
 
         if (!$quote) {
@@ -116,7 +145,7 @@ class BrowseQuoteController extends Controller
     public function applyBid(Request $request)
     {
 
-        $check_plan = Plan::where('provider_id', Auth::id())->first();
+        $check_plan = Plan::where('provider_id', Auth::id())->where('status','active')->first();
 
         if (!$check_plan) {
             return response()->json([

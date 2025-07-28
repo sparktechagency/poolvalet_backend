@@ -73,7 +73,7 @@ class MyServiceController extends Controller
 
     public function cancelBid(Request $request, $id = null)
     {
-        $bid = Bid::find($id);
+        $bid = Bid::where('id',$id)->first();
 
         if (!$bid) {
             return response()->json([
@@ -92,9 +92,9 @@ class MyServiceController extends Controller
 
     public function myEarnings(Request $request)
     {
-        $mark_as_complete_quotes = Bid::where('status', 'Accepted')->pluck('quote_id')->toArray();
+         $mark_as_complete_quotes = Bid::where('status', 'Accepted')->pluck('quote_id')->toArray();
 
-        $my_earnings = Quote::whereIn('id', $mark_as_complete_quotes)->get();
+         $my_earnings = Quote::whereIn('id', $mark_as_complete_quotes)->where('status','Completed')->get();
 
         if (!$my_earnings) {
             return response()->json([

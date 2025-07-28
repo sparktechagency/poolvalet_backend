@@ -9,35 +9,45 @@ use Illuminate\Support\Facades\Validator;
 
 class PageController extends Controller
 {
+
     public function createPage(Request $request)
     {
-        return $this->storeOrUpdatePage($request, $request->page_type, $request->content);
-    }
 
-    private function storeOrUpdatePage(Request $request, $page_type, $content)
-    {
-        // Validation (only content)
-        $request->validate([
-            'content' => 'required|string',
+        // validation roles
+        $validator = Validator::make($request->all(), [
+            'page_type' => 'required|string',
+            'contents' => 'required'
         ]);
 
-        // Update or Create based on 'type'
-        $page = Page::updateOrCreate(
-            ['page_type' => $page_type], // condition
-            ['content' => json_encode($request->content)]
-        );
+        // check validation
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => $validator->errors()
+            ], 422);
+        }
+
+        $page = Page::where('page_type', $request->page_type)->first();
+
+        if (!$page) {
+            $page = Page::create([
+                'page_type' => $request->page_type,
+                'content' => $request->contents
+            ]);
+        } else {
+            $page->content = $request->contents;
+            $page->save();
+        }
 
         $page->content = json_decode($page->content);
 
         return response()->json([
             'status' => true,
-            'message' => $page_type . ' page saved successfully.',
-            'data' => [
-                'page_type' => $page_type,
-                'content' => $page->content,
-            ],
+            'message' => $request->page_type . ' page saved successfully.',
+            'data' => $page,
         ]);
     }
+
 
     public function getPage(Request $request)
     {
