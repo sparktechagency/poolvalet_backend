@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Provider;
 
 use App\Http\Controllers\Controller;
 use App\Models\Bid;
+use App\Models\Profile;
 use App\Models\Quote;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -90,9 +91,31 @@ class MyServiceController extends Controller
         ]);
     }
 
+    public function markAsComplete(Request $request){
+        $quote = Quote::where('id',$request->quote_id)->first();
+        if (!$quote) {
+            return response()->json([
+                'status'=> false,
+                'message'=> 'Quote not found'
+            ]);
+        }
+
+        $quote->status = 'Completed';
+        $quote->save();
+
+        $profile = Profile::where('user_id',Auth::id())->first();
+        $profile->increment('completed_services');
+
+        return response()->json([
+            'status'=> true,
+            'message'=> 'Make as completed',
+            'data'=> $quote
+        ]);
+    }
+
     public function myEarnings(Request $request)
     {
-         $mark_as_complete_quotes = Bid::where('status', 'Accepted')->pluck('quote_id')->toArray();
+         $mark_as_complete_quotes = Bid::where('status', 'Accepted')->where('provider_id',Auth::id())->pluck('quote_id')->toArray();
 
          $my_earnings = Quote::whereIn('id', $mark_as_complete_quotes)->where('status','Completed')->get();
 

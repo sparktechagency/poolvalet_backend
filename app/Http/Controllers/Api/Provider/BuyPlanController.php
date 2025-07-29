@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Provider;
 
 use App\Http\Controllers\Controller;
 use App\Models\Plan;
+use App\Models\Profile;
 use App\Models\Subscription;
 use Exception;
 use Illuminate\Http\Request;
@@ -109,6 +110,11 @@ class BuyPlanController extends Controller
                     'user_id' => Auth::id(),
                 ],
             ]);
+
+            $adminProfile = Profile::where('user_id', 1)->first();
+            $adminEarning = $request->amount;
+            $adminProfile->total_earnings = $adminProfile->total_earnings + $adminEarning;
+            $adminProfile->save();
 
             return response()->json([
                 'status' => true,

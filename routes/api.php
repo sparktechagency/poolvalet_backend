@@ -2,7 +2,7 @@
 
 use App\Http\Controllers\Api\Admin\CategoryController;
 use App\Http\Controllers\Api\Admin\PageController;
-use App\Http\Controllers\Api\Admin\ProfileController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Api\Admin\QuoteListingController;
 use App\Http\Controllers\Api\Admin\SubscriptionController;
 use App\Http\Controllers\Api\Admin\UserManageController;
@@ -14,6 +14,8 @@ use App\Http\Controllers\Api\Provider\MyServiceController;
 use App\Http\Controllers\Api\Provider\StripeConnectController;
 use App\Http\Controllers\Api\User\BidController;
 use App\Http\Controllers\Api\User\PaymentController;
+use App\Http\Controllers\Api\User\ReviewController;
+use App\Http\Controllers\Api\User\TopProviderController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -58,7 +60,6 @@ Route::middleware('auth:api')->group(function () {
         // settings
         Route::patch('/update-profile', [ProfileController::class, 'updateProfile']);
         Route::post('/create-page', [PageController::class, 'createPage']);
-        Route::get('/get-page', [PageController::class, 'getPage']);
     });
 
     // RPOVIDER
@@ -68,7 +69,7 @@ Route::middleware('auth:api')->group(function () {
         Route::get('/view-browse-quote/{id?}', [BrowseQuoteController::class, 'viewBrowseQuote']);
         Route::post('/accept-budget', [BrowseQuoteController::class, 'acceptBudget']);
         Route::post('/apply-bid', [BrowseQuoteController::class, 'applyBid']);
-        Route::get('/bidding-lists', [BrowseQuoteController::class,'biddingLists']);
+        Route::get('/bidding-lists', [BrowseQuoteController::class, 'biddingLists']);
         Route::get('/get-your-bid', [BrowseQuoteController::class, 'getYourBid']);
         Route::put('/edit-your-bid', [BrowseQuoteController::class, 'editYourBid']);
         Route::patch('/make-final-save-your-bid', [BrowseQuoteController::class, 'makeFinalSaveYourBid']);
@@ -76,6 +77,7 @@ Route::middleware('auth:api')->group(function () {
         // my services
         Route::get('/my-service-quotes', [MyServiceController::class, 'myServiceQuotes']);
         Route::delete('/cancel-bid/{id?}', [MyServiceController::class, 'cancelBid']);
+        Route::patch('/mark-as-complete', [MyServiceController::class, 'markAsComplete']);
         Route::get('/my-earnings', [MyServiceController::class, 'myEarnings']);
 
         // buy plan
@@ -107,8 +109,23 @@ Route::middleware('auth:api')->group(function () {
         // get page
         Route::get('/get-page', [PageController::class, 'getPage']);
 
+        // review
+        Route::post('/create-review', [ReviewController::class, 'createReview']);
+        Route::get('/view-review/{id}', [ReviewController::class, 'viewReview']);
+        Route::get('/get-reviews', [ReviewController::class, 'getReviews']);
+
+        // top providers
+        Route::get('/top-providers',[TopProviderController::class,'topProviders']);
+        Route::get('/view-provider/{id?}',[TopProviderController::class,'viewProvider']);
+
         // payment
         Route::post('/create-payment-intent', [PaymentController::class, 'createPaymentIntent']);
         Route::post('/payment-success', [PaymentController::class, 'paymentSuccess']);
+    });
+
+    Route::middleware('user.provider')->group(function () {
+        // profile for user/
+        Route::patch('/edit-account',[ProfileController::class,'editAccount']);
+        Route::patch('/edit-address',[ProfileController::class,'editAddress']);
     });
 });

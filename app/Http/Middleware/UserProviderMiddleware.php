@@ -18,12 +18,13 @@ class UserProviderMiddleware
     public function handle(Request $request, Closure $next): Response
     {
         try {
-            if (Auth::user()->role !== 'USER' || Auth::user()->role !== 'PROVIDER') {
+            if (!in_array(Auth::user()->role, ['USER', 'PROVIDER'])) {
                 return response()->json([
                     'status' => false,
                     'message' => 'Unauthorized'
                 ], 403);
             }
+
             return $next($request);
 
         } catch (AuthenticationException $exception) {

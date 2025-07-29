@@ -9,4 +9,9 @@ class Review extends Model
 {
     use HasFactory;
     protected $guarded = ['id'];
+
+    public function provider()
+    {
+        return $this->belongsTo(User::class, 'provider_id');
+    }
 }

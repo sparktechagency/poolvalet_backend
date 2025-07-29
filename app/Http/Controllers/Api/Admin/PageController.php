@@ -16,7 +16,7 @@ class PageController extends Controller
         // validation roles
         $validator = Validator::make($request->all(), [
             'page_type' => 'required|string',
-            'contents' => 'required'
+            'content' => 'required'
         ]);
 
         // check validation
@@ -27,19 +27,18 @@ class PageController extends Controller
             ], 422);
         }
 
+
         $page = Page::where('page_type', $request->page_type)->first();
 
         if (!$page) {
             $page = Page::create([
                 'page_type' => $request->page_type,
-                'content' => $request->contents
+                'content' => $request->content
             ]);
         } else {
-            $page->content = $request->contents;
+            $page->content = $request->content;
             $page->save();
         }
-
-        $page->content = json_decode($page->content);
 
         return response()->json([
             'status' => true,
@@ -73,7 +72,6 @@ class PageController extends Controller
             ], 404);
         }
 
-        $page->content = json_decode($page->content);
 
         return response()->json([
             'status' => true,

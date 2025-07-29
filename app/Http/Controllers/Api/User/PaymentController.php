@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\User;
 
 use App\Http\Controllers\Controller;
 use App\Models\Plan;
+use App\Models\Profile;
 use App\Models\Subscription;
 use App\Models\User;
 use Exception;
@@ -68,6 +69,23 @@ class PaymentController extends Controller
                 'confirm' => true, // ✅ This forces confirm step
             ]);
 
+            $userProfile = Profile::where('user_id', Auth::id())->first();
+            $userProfile->increment('completed_services');
+
+            $userProfile->total_pay = $userProfile->total_pay + $amountInCents / 100;
+            $userProfile->save();
+
+            $providerProfile = Profile::where('user_id', $request->provider_id)->first();
+            $providerEarning = ($amountInCents * 0.95) / 100;
+            $providerProfile->total_earnings = $userProfile->total_earnings + $providerEarning;
+            $providerProfile->save();
+
+            $adminProfile = Profile::where('user_id', 1)->first();
+            $adminEarning = ($amountInCents * 0.05) / 100;
+            $adminProfile->total_earnings = $adminProfile->total_earnings + $adminEarning;
+            $adminProfile->save();
+
+
             // ✅ Step 5: Return intent info
             return response()->json([
                 'status' => true,
@@ -83,7 +101,7 @@ class PaymentController extends Controller
             ], 500);
         }
     }
-    
+
     public function paymentSuccess(Request $request)
     {
         //
