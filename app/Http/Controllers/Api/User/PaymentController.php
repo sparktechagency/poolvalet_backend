@@ -5,8 +5,11 @@ namespace App\Http\Controllers\Api\User;
 use App\Http\Controllers\Controller;
 use App\Models\Plan;
 use App\Models\Profile;
+use App\Models\Quote;
 use App\Models\Subscription;
+use App\Models\Transaction;
 use App\Models\User;
+use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -65,8 +68,8 @@ class PaymentController extends Controller
                     'description' => 'Payment from user to provider with 5% admin fee'
                 ],
 
-                'payment_method' => 'pm_card_visa', // ✅ Add this line
-                'confirm' => true, // ✅ This forces confirm step
+                // 'payment_method' => 'pm_card_visa', // ✅ Add this line
+                // 'confirm' => true, // ✅ This forces confirm step
             ]);
 
             $userProfile = Profile::where('user_id', Auth::id())->first();
@@ -84,7 +87,6 @@ class PaymentController extends Controller
             $adminEarning = ($amountInCents * 0.05) / 100;
             $adminProfile->total_earnings = $adminProfile->total_earnings + $adminEarning;
             $adminProfile->save();
-
 
             // ✅ Step 5: Return intent info
             return response()->json([
@@ -104,6 +106,60 @@ class PaymentController extends Controller
 
     public function paymentSuccess(Request $request)
     {
-        //
+        $validator = Validator::make($request->all(), [
+            'payment_intent_id' => 'required',
+            'provider_id' => 'required|numeric|exists:users,id',
+            'quote_id' => 'required',
+            'amount' => 'required|numeric|min:1',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => $validator->errors()
+            ], 422);
+        }
+
+        Stripe::setApiKey(env('STRIPE_SECRET'));
+
+        try {
+
+           $paymentIntent = PaymentIntent::retrieve($request->payment_intent_id);
+
+            if ($paymentIntent->status === 'requires_payment_method') {  // succeeded or requires_payment_method
+
+                $transaction = Transaction::create([
+                    'payment_intent_id' => $request->payment_intent_id,
+                    'user_id' => Auth::id(),
+                    'provider_id' => $request->provider_id,
+                    'quote_id' => $request->quote_id,
+                    'date' => Carbon::now(),
+                    'name' => Auth::user()->full_name,
+                    'service_name' => Quote::where('id',$request->quote_id)->first()->service,
+                    'amount' => $request->amount,
+                    'status' => 'Completed',
+
+                ]);
+
+                return response()->json([
+                    'status' => true,
+                    'message' => 'Transaction recorded successfully',
+                    'data' => $transaction,
+                ], 200);
+
+            } else {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Payment failed. Status: ' . $paymentIntent->status,
+                ], 400);
+            }
+
+        } catch (Exception $e) {
+            Log::error($e->getMessage());
+            return response()->json([
+                'status' => false,
+                'message' => 'Payment failed: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 }

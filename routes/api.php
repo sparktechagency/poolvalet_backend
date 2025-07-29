@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\Admin\CategoryController;
 use App\Http\Controllers\Api\Admin\PageController;
+use App\Http\Controllers\Api\Admin\TransactionController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Api\Admin\QuoteListingController;
 use App\Http\Controllers\Api\Admin\SubscriptionController;
@@ -44,6 +45,9 @@ Route::middleware('auth:api')->group(function () {
         // quote listing
         Route::get('/get-quote-listing', [QuoteListingController::class, 'getQuoteListing']);
         Route::get('/view-quote/{id?}', [QuoteListingController::class, 'viewQuote']);
+
+        // transactions
+        Route::get('/get-transactions',[TransactionController::class,'getTransactions']);
 
         // categories
         Route::post('/add-category', [CategoryController::class, 'addCategory']);
