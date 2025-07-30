@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\Admin\QuoteListingController;
 use App\Http\Controllers\Api\Admin\SubscriptionController;
 use App\Http\Controllers\Api\Admin\UserManageController;
 use App\Http\Controllers\Api\Auth\AuthController;
+use App\Http\Controllers\Api\Auth\SocialAuthController;
 use App\Http\Controllers\Api\User\QuoteController;
 use App\Http\Controllers\Api\Provider\BrowseQuoteController;
 use App\Http\Controllers\Api\Provider\BuyPlanController;
@@ -27,6 +28,9 @@ Route::post('/verify-otp', [AuthController::class, 'verifyOtp']);
 Route::post('/resend-otp', [AuthController::class, 'resendOtp']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+
+Route::post('/social-login', [AuthController::class, 'socialLogin']);
+
 
 // private route for user
 Route::middleware('auth:api')->group(function () {

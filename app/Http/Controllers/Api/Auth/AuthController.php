@@ -11,14 +11,112 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
+
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AuthController extends Controller
 {
+    public function socialLogin(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'full_name' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'google_id' => 'nullable|string',
+            'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => $validator->errors()
+            ], 400);
+        }
+
+        $existingUser = User::where('email', $request->email)->first();
+
+        if ($existingUser) {
+            $socialMatch = $request->has('google_id') && $existingUser->google_id === $request->google_id;
+
+            if ($socialMatch) {
+
+                Auth::login($existingUser);
+
+                $tokenExpiry = Carbon::now()->addDays(7);
+                $customClaims = ['exp' => $tokenExpiry->timestamp];
+                $token = JWTAuth::customClaims($customClaims)->fromUser($existingUser);
+
+                return response()->json([
+                    'status' => true,
+                    'message' => 'Login successful',
+                    'token' => $token
+                ], 200);
+            } elseif (is_null($existingUser->google_id)) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'User already exists. Please sign in manually.'
+                ], 422);
+            } else {
+                $existingUser->update([
+                    'google_id' => $request->google_id ?? $existingUser->google_id,
+                ]);
+
+                Auth::login($existingUser);
+
+                $tokenExpiry = Carbon::now()->addDays(7);
+                $customClaims = ['exp' => $tokenExpiry->timestamp];
+                $token = JWTAuth::customClaims($customClaims)->fromUser($existingUser);
+
+                return response()->json([
+                    'status' => true,
+                    'message' => 'Login successful',
+                    'token' => $token
+                ], 200);
+            }
+        }
+
+        $avatarPath = null;
+        if ($request->hasFile('avatar')) {
+            $file = $request->file('avatar');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $filepath = $file->storeAs('avatars', $filename, 'public');
+            $avatarPath = '/storage/' . $filepath;
+        }
+
+        $user = User::create([
+            'full_name' => $request->full_name,
+            'email' => $request->email,
+            'password' => Hash::make(Str::random(16)),
+            'avatar' => $avatarPath ?? null,
+            'role' => 'USER',
+            'google_id' => $request->google_id ?? null,
+            'status' => 'active',
+        ]);
+
+        Profile::create([
+            'user_id' => $user->id,
+        ]);
+
+        Auth::login($user);
+
+        $tokenExpiry = Carbon::now()->addDays(7);
+        $customClaims = ['exp' => $tokenExpiry->timestamp];
+        $token = JWTAuth::customClaims($customClaims)->fromUser($user);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'User registered and logged in successfully.',
+            'token' => $token,
+            'data' => $user
+        ], 200);
+    }
+
     public function register(Request $request)
     {
 
@@ -59,7 +157,7 @@ class AuthController extends Controller
         ]);
 
         Profile::create([
-            'user_id'=> $user->id,
+            'user_id' => $user->id,
         ]);
 
         try {
@@ -342,7 +440,7 @@ class AuthController extends Controller
             ], 404);
         }
 
-        if ($user->status == 'active') {
+        if ($user->status == 'Active') {
             $user->password = Hash::make($request->password);
             $user->save();
             return response()->json([
