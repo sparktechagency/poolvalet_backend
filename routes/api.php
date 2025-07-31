@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\Admin\SubscriptionController;
 use App\Http\Controllers\Api\Admin\UserManageController;
 use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\Auth\SocialAuthController;
+use App\Http\Controllers\Api\ChatController;
 use App\Http\Controllers\Api\User\QuoteController;
 use App\Http\Controllers\Api\Provider\BrowseQuoteController;
 use App\Http\Controllers\Api\Provider\BuyPlanController;
@@ -135,5 +136,14 @@ Route::middleware('auth:api')->group(function () {
         // profile for user/
         Route::patch('/edit-account',[ProfileController::class,'editAccount']);
         Route::patch('/edit-address',[ProfileController::class,'editAddress']);
+
+        // chat
+        Route::post('/store-message',[ChatController::class,'storeMessage']);
+        Route::get('/get-messages',[ChatController::class,'getMessages']);
+        Route::get('/chat-lists',[ChatController::class,'chatLists']);
+        Route::get('/unread-count',[ChatController::class,'unreadCount']);
+        Route::get('/mark-as-read',[ChatController::class,'markAsRead']);
+        Route::delete('/delete-conversation',[ChatController::class,'deleteConversation']);
+        Route::get('/last-message-time',[ChatController::class,'lastMessageTime']);
     });
 });
