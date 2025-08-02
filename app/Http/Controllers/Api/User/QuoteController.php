@@ -26,7 +26,7 @@ class QuoteController extends Controller
             'expected_budget' => 'nullable|numeric|min:0',
 
             'photos' => 'nullable|array|max:4', // Max 4 files
-            'photos.*' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'photos.*' => 'nullable', // |image|mimes:jpeg,png,jpg|max:2048'
             'video' => 'nullable|file|mimetypes:video/mp4,video/quicktime|max:10240',
         ]);
 

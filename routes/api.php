@@ -108,6 +108,7 @@ Route::middleware('auth:api')->group(function () {
         Route::get('/get-my-quotes', [QuoteController::class, 'getMyQuotes']);
         Route::get('/view-quote/{id?}', [QuoteController::class, 'viewQuote']);
         Route::delete('/delete-quote/{id?}', [QuoteController::class, 'deleteQuote']);
+        
 
         // bids
         Route::get('get-check-bids', [BidController::class, 'getCheckBids']);
@@ -136,6 +137,7 @@ Route::middleware('auth:api')->group(function () {
         // profile for user/
         Route::patch('/edit-account',[ProfileController::class,'editAccount']);
         Route::patch('/edit-address',[ProfileController::class,'editAddress']);
+        Route::get('/order-info', [ProfileController::class, 'orderInfo']);
 
         // chat
         Route::post('/store-message',[ChatController::class,'storeMessage']);

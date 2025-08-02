@@ -494,9 +494,9 @@ class AuthController extends Controller
         }
     }
 
-    public function getProfile()
+    public function getProfile(Request $request)
     {
-        $user = User::find(Auth::id());
+        $user = User::find($request->user_id ?? Auth::id());
         if (!$user) {
             return response()->json([
                 'status' => false,

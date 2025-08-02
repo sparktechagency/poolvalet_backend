@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Bid;
 use App\Models\Profile;
+use App\Models\Quote;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -168,6 +170,24 @@ class ProfileController extends Controller
             'status' => true,
             'message' => 'Profile updated successfully.',
             'data' => $user
+        ]);
+    }
+
+    public function orderInfo(Request $request)
+    {
+
+        $total_order_user = Quote::where('user_id', Auth::id())->count();
+
+        $total_order_provider = Bid::where('provider_id', Auth::id())->where('bid_status', 'public')->count();
+
+        $completed_order = Profile::where('user_id', Auth::id())->first()->completed_services;
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Order info',
+            'total order' => Auth::user()->role == 'USER' ? $total_order_user : $total_order_provider,
+            'pending order' => Auth::user()->role == 'USER' ? $total_order_user - $completed_order : $total_order_provider - $completed_order,
+            'completed order' => $completed_order,
         ]);
     }
 }

@@ -14,10 +14,10 @@ return new class extends Migration
         Schema::create('profiles', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
-            $table->unsignedInteger('completed_services')->default(0);
+            $table->unsignedInteger('completed_service')->default(0);
             $table->unsignedInteger('canceled_order')->default(0);
             $table->unsignedInteger('order_accept')->default(0);
-            $table->decimal('total_earnings',10,2)->default(0);
+            $table->decimal('total_earning',10,2)->default(0);
             $table->decimal('total_pay',10,2)->default(0);
             $table->string('display_name')->nullable();
             $table->string('user_name')->nullable();
