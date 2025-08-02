@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Api\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Mail\VerifyOTPMail;
+use App\Models\Bid;
 use App\Models\Profile;
+use App\Models\Quote;
 use App\Models\User;
 use Carbon\Carbon;
 use Exception;
@@ -506,10 +508,20 @@ class AuthController extends Controller
 
         $user->avatar = $user->avatar != null ? $user->avatar : 'https://ui-avatars.com/api/?background=random&name=' . $user->full_name;
 
+        $total_order_user = Quote::where('user_id', Auth::id())->count();
+
+        $total_order_provider = Bid::where('provider_id', Auth::id())->where('bid_status', 'public')->count();
+
+        $completed_order = Profile::where('user_id', Auth::id())->first()->completed_services;
+
+
         return response()->json([
             'status' => true,
             'message' => 'Your profile',
-            'data' => $user
+            'data' => $user,
+            'total order' => Auth::user()->role == 'USER' ? $total_order_user : $total_order_provider,
+            'pending order' => Auth::user()->role == 'USER' ? $total_order_user - $completed_order : $total_order_provider - $completed_order,
+            'completed order' => $completed_order,
         ], 200);
     }
 }
