@@ -116,10 +116,10 @@ class QuoteController extends Controller
             'address' => 'required|string|max:255',
             'expected_budget' => 'nullable|numeric|min:0',
 
-            'photo_1' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            'photo_2' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            'photo_3' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            'photo_4' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'photo_1' => 'nullable',
+            'photo_2' => 'nullable',
+            'photo_3' => 'nullable',
+            'photo_4' => 'nullable',
             'video' => 'nullable|file|mimetypes:video/mp4,video/quicktime|max:10240',
         ]);
 
