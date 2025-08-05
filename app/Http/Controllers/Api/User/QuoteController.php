@@ -241,7 +241,7 @@ class QuoteController extends Controller
 
     public function viewQuote($id = null)
     {
-        $quote = Quote::find($id);
+        $quote = Quote::with('user.profile')->find($id);
 
         if (!$quote) {
             return response()->json([
@@ -250,11 +250,23 @@ class QuoteController extends Controller
             ], 404);
         }
 
-        $decoded = json_decode($quote->photos, true);
-        if (is_string($decoded)) {
-            $decoded = json_decode($decoded, true);
+        // ✅ Decode photos safely
+        $quote->photos = is_array($quote->photos)
+            ? $quote->photos
+            : json_decode($quote->photos, true) ?? [];
+
+        // ✅ Job accept rate
+        $profile = $quote->user->profile ?? null;
+
+        if ($profile) {
+            $totalOrders = $profile->order_accept + $profile->canceled_order;
+            $acceptRate = $totalOrders > 0
+                ? round(($profile->order_accept / $totalOrders) * 100)
+                : 0;
+
+            $profile->job_accept_rate = $acceptRate . '%';
+            $profile->total_job_posted = Quote::where('user_id', $quote->user_id)->count();
         }
-        $quote->photos = $decoded;
 
         return response()->json([
             'status' => true,
@@ -262,6 +274,7 @@ class QuoteController extends Controller
             'data' => $quote,
         ]);
     }
+
 
     public function deleteQuote($id = null)
     {

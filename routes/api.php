@@ -31,6 +31,8 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
 
 Route::post('/social-login', [AuthController::class, 'socialLogin']);
+// get page
+Route::get('/get-page', [PageController::class, 'getPage']);
 
 
 // private route for user
@@ -52,7 +54,7 @@ Route::middleware('auth:api')->group(function () {
         Route::get('/view-quote/{id?}', [QuoteListingController::class, 'viewQuote']);
 
         // transactions
-        Route::get('/get-transactions',[TransactionController::class,'getTransactions']);
+        Route::get('/get-transactions', [TransactionController::class, 'getTransactions']);
 
         // categories
         Route::post('/add-category', [CategoryController::class, 'addCategory']);
@@ -108,7 +110,7 @@ Route::middleware('auth:api')->group(function () {
         Route::get('/get-my-quotes', [QuoteController::class, 'getMyQuotes']);
         Route::get('/view-quote/{id?}', [QuoteController::class, 'viewQuote']);
         Route::delete('/delete-quote/{id?}', [QuoteController::class, 'deleteQuote']);
-        
+
 
         // bids
         Route::get('get-check-bids', [BidController::class, 'getCheckBids']);
@@ -116,8 +118,7 @@ Route::middleware('auth:api')->group(function () {
         Route::patch('accept-request', [BidController::class, 'acceptRequest']);
         Route::patch('cancel-order', [BidController::class, 'cancelOrder']);
 
-        // get page
-        Route::get('/get-page', [PageController::class, 'getPage']);
+
 
         // review
         Route::post('/create-review', [ReviewController::class, 'createReview']);
@@ -125,8 +126,8 @@ Route::middleware('auth:api')->group(function () {
         Route::get('/get-reviews', [ReviewController::class, 'getReviews']);
 
         // top providers
-        Route::get('/top-providers',[TopProviderController::class,'topProviders']);
-        Route::get('/view-provider/{id?}',[TopProviderController::class,'viewProvider']);
+        Route::get('/top-providers', [TopProviderController::class, 'topProviders']);
+        Route::get('/view-provider/{id?}', [TopProviderController::class, 'viewProvider']);
 
         // payment
         Route::post('/create-payment-intent', [PaymentController::class, 'createPaymentIntent']);
@@ -135,17 +136,17 @@ Route::middleware('auth:api')->group(function () {
 
     Route::middleware('user.provider')->group(function () {
         // profile for user/
-        Route::patch('/edit-account',[ProfileController::class,'editAccount']);
-        Route::patch('/edit-address',[ProfileController::class,'editAddress']);
+        Route::patch('/edit-account', [ProfileController::class, 'editAccount']);
+        Route::patch('/edit-address', [ProfileController::class, 'editAddress']);
         Route::get('/order-info', [ProfileController::class, 'orderInfo']);
 
         // chat
-        Route::post('/store-message',[ChatController::class,'storeMessage']);
-        Route::get('/get-messages',[ChatController::class,'getMessages']);
-        Route::get('/chat-lists',[ChatController::class,'chatLists']);
-        Route::get('/unread-count',[ChatController::class,'unreadCount']);
-        Route::get('/mark-as-read',[ChatController::class,'markAsRead']);
-        Route::delete('/delete-conversation',[ChatController::class,'deleteConversation']);
-        Route::get('/last-message-time',[ChatController::class,'lastMessageTime']);
+        Route::post('/store-message', [ChatController::class, 'storeMessage']);
+        Route::get('/get-messages', [ChatController::class, 'getMessages']);
+        Route::get('/chat-lists', [ChatController::class, 'chatLists']);
+        Route::get('/unread-count', [ChatController::class, 'unreadCount']);
+        Route::get('/mark-as-read', [ChatController::class, 'markAsRead']);
+        Route::delete('/delete-conversation', [ChatController::class, 'deleteConversation']);
+        Route::get('/last-message-time', [ChatController::class, 'lastMessageTime']);
     });
 });
