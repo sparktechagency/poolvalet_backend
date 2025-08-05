@@ -519,9 +519,9 @@ class AuthController extends Controller
             'status' => true,
             'message' => 'Your profile',
             'data' => $user,
-            'total order' => Auth::user()->role == 'USER' ? $total_order_user : $total_order_provider,
-            'pending order' => Auth::user()->role == 'USER' ? $total_order_user - $completed_order : $total_order_provider - $completed_order,
-            'completed order' => $completed_order,
+            'total_order' => Auth::user()->role == 'USER' ? $total_order_user : $total_order_provider,
+            'pending_order' => Auth::user()->role == 'USER' ? $total_order_user - $completed_order : $total_order_provider - $completed_order,
+            'completed_order' => $completed_order,
         ], 200);
     }
 }
