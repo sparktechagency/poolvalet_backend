@@ -212,15 +212,12 @@ class AuthController extends Controller
             $customClaims = ['exp' => $tokenExpiry->timestamp];
             $token = JWTAuth::customClaims($customClaims)->fromUser($user);
 
-            // json response
             return response()->json([
                 'status' => true,
                 'message' => 'OTP verified successfully',
                 'access_token' => $token,
                 'token_type' => 'bearer',
                 'expires_in' => $tokenExpiry,
-                // 'expires_in' => $tokenExpiry->diffInSeconds(Carbon::now()),
-                // 'expires_in' => JWTAuth::factory()->getTTL() * 60,
             ], 200);
         } else {
 

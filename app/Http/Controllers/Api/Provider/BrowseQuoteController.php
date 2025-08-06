@@ -33,8 +33,8 @@ class BrowseQuoteController extends Controller
                 $q->select('id', 'full_name', 'avatar');
             }
         ])
-            ->select('id', 'user_id', 'service', 'expected_budget','status')
-            ->where('status','Pending')
+            ->select('id', 'user_id', 'service', 'expected_budget', 'status')
+            ->where('status', 'Pending')
             ->latest()->paginate($request->per_page ?? 10);
 
         // ✅ Format each user
@@ -53,7 +53,7 @@ class BrowseQuoteController extends Controller
 
     public function viewBrowseQuote(Request $request, $id = null)
     {
-        $quote = Quote::with('user.profile')->where('id', $id)->where('status','Pending')->first();
+        $quote = Quote::with('user.profile')->where('id', $id)->where('status', 'Pending')->first();
 
         if (!$quote) {
             return response()->json([
@@ -79,7 +79,7 @@ class BrowseQuoteController extends Controller
     public function acceptBudget(Request $request)
     {
 
-        $check_plan = Plan::where('provider_id', Auth::id())->where('status','active')->first();
+        $check_plan = Plan::where('provider_id', Auth::id())->where('status', 'active')->first();
 
         if (!$check_plan) {
             return response()->json([
@@ -97,13 +97,13 @@ class BrowseQuoteController extends Controller
         }
 
         // Decrement quotes
-        $check_plan->decrement('total_quotes');
+        // $check_plan->decrement('total_quotes');
 
 
-        if ($check_plan->total_quotes <= 0) {
-            $check_plan->status = 'Inactive';
-            $check_plan->save();
-        }
+        // if ($check_plan->total_quotes <= 0) {
+        //     $check_plan->status = 'Inactive';
+        //     $check_plan->save();
+        // }
 
 
         $quote = Quote::where('id', $request->quote_id)->first();
@@ -132,7 +132,6 @@ class BrowseQuoteController extends Controller
             'provider_id' => Auth::id(),
             'price_offered' => $quote->expected_budget,
             'quote_outline' => "The homeowner's expected budget was directly accepted by the provider.",
-            'status' => 'Accepted',
         ]);
 
         return response()->json([
@@ -145,7 +144,7 @@ class BrowseQuoteController extends Controller
     public function applyBid(Request $request)
     {
 
-        $check_plan = Plan::where('provider_id', Auth::id())->where('status','active')->first();
+        $check_plan = Plan::where('provider_id', Auth::id())->where('status', 'active')->first();
 
         if (!$check_plan) {
             return response()->json([
@@ -163,13 +162,13 @@ class BrowseQuoteController extends Controller
         }
 
         // Decrement quotes
-        $check_plan->decrement('total_quotes');
+        // $check_plan->decrement('total_quotes');
 
 
-        if ($check_plan->total_quotes <= 0) {
-            $check_plan->status = 'Inactive';
-            $check_plan->save();
-        }
+        // if ($check_plan->total_quotes <= 0) {
+        //     $check_plan->status = 'Inactive';
+        //     $check_plan->save();
+        // }
 
         // return response()->json([
         //     'status' => true,
@@ -272,6 +271,17 @@ class BrowseQuoteController extends Controller
                 'status' => false,
                 'message' => 'Bid not found'
             ]);
+        }
+
+        $check_plan = Plan::where('provider_id', Auth::id())->where('status', 'active')->first();
+
+        // Decrement quotes
+        $check_plan->decrement('total_quotes');
+
+
+        if ($check_plan->total_quotes <= 0) {
+            $check_plan->status = 'Inactive';
+            $check_plan->save();
         }
 
         $bid->bid_status = 'Public';

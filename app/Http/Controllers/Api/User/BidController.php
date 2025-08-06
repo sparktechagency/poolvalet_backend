@@ -24,7 +24,6 @@ class BidController extends Controller
             'data' => $bids
         ]);
     }
-
     public function getAcceptedBids(Request $request)
     {
         $bids = Bid::where('status', 'Accepted')
@@ -37,24 +36,27 @@ class BidController extends Controller
             'data' => $bids
         ]);
     }
-
     public function acceptRequest(Request $request)
     {
         try {
-
             $bids_of_quote = Bid::where('id', $request->bid_id)->where('bid_status', 'public')->first();
-
+            $bids_of_quote_status = Bid::where('quote_id', $bids_of_quote->quote_id)
+                ->where('bid_status', 'public')
+                ->pluck('status')
+                ->toArray();
+            if (in_array('Accepted', $bids_of_quote_status)) {
+                return response()->json([
+                    'status' => false,
+                    'message' => "You already accepted one person, you can't accept anyone else."
+                ]);
+            }
             if ($bids_of_quote) {
                 $bids_of_quote->status = 'Accepted';
                 $bids_of_quote->save();
-
                 $bids_of_quote->quote->status = 'In progress';
                 $bids_of_quote->quote->save();
-
                 $profile = Profile::where('user_id', $bids_of_quote->quote->user_id)->first();
-
                 $profile->increment('order_accept');
-
                 return response()->json([
                     'status' => true,
                     'message' => 'Accept request successfully',
@@ -66,7 +68,6 @@ class BidController extends Controller
                     'message' => 'This quote has no bids.'
                 ]);
             }
-
         } catch (\Throwable $th) {
             return response()->json([
                 'status' => false,
@@ -75,40 +76,31 @@ class BidController extends Controller
             ]);
         }
     }
-
     public function cancelOrder(Request $request)
     {
         try {
             $quote = Quote::where('id', $request->quote_id)->where('status', 'In progress')->first();
-
             if (!$quote) {
                 return response()->json([
                     'status' => false,
                     'message' => 'Quote not found'
                 ]);
             }
-
             $bids_of_quote = Bid::where('quote_id', $request->quote_id)->where('bid_status', 'public')->first();
-
             if ($bids_of_quote) {
                 $bids_of_quote->status = 'Canceled';
                 $bids_of_quote->save();
-
                 $quote->delete();
-
                 $profile = Profile::where('user_id', $quote->user_id)->first();
-
                 $profile->increment('canceled_order');
                 if ($profile->order_accept > 0) {
                     $profile->decrement('order_accept');
                 } else {
                     $profile->order_accept = 0;
                 }
-
                 return response()->json([
                     'status' => true,
-                    'message' => 'Order canceled successfully',
-                    // 'data' => $quote
+                    'message' => 'Order canceled successfully'
                 ]);
             } else {
                 return response()->json([
@@ -116,7 +108,6 @@ class BidController extends Controller
                     'message' => 'This quote has no bids.'
                 ]);
             }
-
         } catch (\Throwable $th) {
             return response()->json([
                 'status' => false,
@@ -125,5 +116,4 @@ class BidController extends Controller
             ]);
         }
     }
-
 }
