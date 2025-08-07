@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\User;
 
 use App\Http\Controllers\Controller;
 use App\Models\Quote;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -214,6 +215,27 @@ class QuoteController extends Controller
         ]);
     }
 
+    public function searchProvider(Request $request)
+    {
+        $search = $request->query('search');
+
+        $query = User::query()
+            ->where('role', 'PROVIDER');
+
+        if (!empty($search)) {
+            $query->where('full_name', 'like', '%' . $search . '%');
+        }
+
+        $providers = $query->paginate($request->per_page ?? 10);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Provider search result',
+            'data' => $providers,
+        ]);
+
+    }
+
     public function getMyQuotes(Request $request)
     {
         $query = Quote::where('user_id', Auth::id());
@@ -274,8 +296,6 @@ class QuoteController extends Controller
             'data' => $quote,
         ]);
     }
-
-
     public function deleteQuote($id = null)
     {
         $quote = Quote::find($id);

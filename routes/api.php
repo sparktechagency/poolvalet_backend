@@ -105,6 +105,7 @@ Route::middleware('auth:api')->group(function () {
         // quotes
         Route::post('/create-quote', [QuoteController::class, 'createQuote']);
         Route::get('/get-quotes', [QuoteController::class, 'getQuotes']);
+        Route::get('/search-provider', [QuoteController::class, 'searchProvider']);
 
         // my quote
         Route::get('/get-my-quotes', [QuoteController::class, 'getMyQuotes']);
