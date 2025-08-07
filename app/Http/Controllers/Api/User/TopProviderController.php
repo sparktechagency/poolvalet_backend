@@ -88,12 +88,19 @@ class TopProviderController extends Controller
             $provider->complete_rate = '0%';
         }
 
+        $reviews = Review::with('user')->where('provider_id', $id)->get();
+
+        foreach ($reviews as $review) {
+            $review->user->avatar = $review->user->avatar
+                ? asset($review->user->avatar)
+                : 'https://ui-avatars.com/api/?background=random&name=' . urlencode($review->user->full_name);
+        }
 
         return response()->json([
             'status' => true,
             'message' => 'Provider profile loaded successfully.',
             'provider' => $provider,
-            'reviews' => Review::where('provider_id', $id)->get()
+            'reviews' => $reviews
         ]);
     }
 
