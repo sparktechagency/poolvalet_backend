@@ -263,6 +263,7 @@ class QuoteController extends Controller
 
         return response()->json([
             'status' => true,
+            'isStatus' => $request->status,
             'message' => 'Get my all quotes',
             'quotes' => $quotes
         ]);
