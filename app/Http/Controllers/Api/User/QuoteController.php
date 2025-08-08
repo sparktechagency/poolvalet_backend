@@ -20,8 +20,8 @@ class QuoteController extends Controller
             'property_type' => 'required|string|max:255',
             'service_type' => 'required|string|max:255',
             'pool_depth' => 'nullable|string|max:255',
-            'date' => 'required|date',
-            'time' => 'required|date_format:H:i',
+            'date' => 'required',
+            'time' => 'required',
             'zip_code' => 'required|string|max:5',
             'address' => 'required|string|max:255',
             'expected_budget' => 'nullable|numeric|min:0',
@@ -63,6 +63,7 @@ class QuoteController extends Controller
         // Format date & time
         $date = Carbon::createFromFormat('m/d/Y', $request->date)->format('Y-m-d');
         $time = Carbon::parse($request->time)->format('H:i');
+        // Carbon::createFromFormat('H:i', $request->time)->format('g:i A');
 
         // Create quote
         $quote = Quote::create([
@@ -84,6 +85,7 @@ class QuoteController extends Controller
         ]);
 
         $quote->photos = json_decode($quote->photos, true);
+        $quote->time = Carbon::createFromFormat('H:i', $quote->time)->format('g:i A');
 
         return response()->json([
             'status' => true,
@@ -208,16 +210,19 @@ class QuoteController extends Controller
 
     public function searchProvider(Request $request)
     {
-        $search = $request->query('search');
+        $search = trim($request->query('search'));
 
-        $query = User::query()
-            ->where('role', 'PROVIDER');
-
-        if (!empty($search)) {
-            $query->where('full_name', 'like', '%' . $search . '%');
+        if (empty($search)) {
+            return response()->json([
+                'status' => true,
+                'message' => 'No search keyword provided.',
+                'data' => [],
+            ]);
         }
 
-        $providers = $query->paginate($request->per_page ?? 10);
+        $providers = User::where('role', 'PROVIDER')
+            ->where('full_name', 'like', '%' . $search . '%')
+            ->get();
 
         return response()->json([
             'status' => true,
