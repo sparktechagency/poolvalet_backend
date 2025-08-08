@@ -71,7 +71,7 @@ class TopProviderController extends Controller
 
         $provider->average_rating = $ratingStats->average_rating
             ? number_format($ratingStats->average_rating, 1)
-            : null;
+            : 0;
 
         $provider->total_reviews = $ratingStats->total_reviews ?? 0;
 

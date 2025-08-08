@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\User;
 
 use App\Http\Controllers\Controller;
 use App\Models\Quote;
+use App\Models\Review;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -223,6 +224,16 @@ class QuoteController extends Controller
         $providers = User::where('role', 'PROVIDER')
             ->where('full_name', 'like', '%' . $search . '%')
             ->get();
+
+        foreach ($providers as $provider) {
+            $ratingStats = Review::where('provider_id', $provider->id)
+                ->selectRaw('AVG(rating) as average_rating, COUNT(*) as total_reviews')
+                ->first();
+
+            $provider->average_rating = $ratingStats->average_rating
+                ? number_format($ratingStats->average_rating, 1)
+                : 0;
+        }
 
         return response()->json([
             'status' => true,
