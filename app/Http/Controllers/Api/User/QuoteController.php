@@ -253,7 +253,6 @@ class QuoteController extends Controller
         }
 
         $quotes = $query->orderBy('created_at', 'desc')
-            ->select('id', 'user_id', 'service_type', 'status', 'date', 'time', 'photos', 'video')
             ->paginate($request->per_page ?? 10);
 
         foreach ($quotes as $quote) {
