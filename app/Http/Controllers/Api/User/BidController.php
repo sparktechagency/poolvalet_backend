@@ -33,6 +33,8 @@ class BidController extends Controller
             $bid->average_rating = $ratingStats->average_rating
                 ? number_format($ratingStats->average_rating, 1)
                 : 0;
+
+            $bid->button = Quote::where('id',$request->quote_id)->first()->status;
         }
 
         return response()->json([
@@ -46,6 +48,23 @@ class BidController extends Controller
         $bids = Bid::where('status', 'Accepted')
             ->where('bid_status', 'Public')
             ->paginate($request->per_page ?? 10);
+
+
+        foreach ($bids as $bid) {
+
+            $bid->provider->avatar = $bid->provider->avatar
+                ? asset($bid->provider->avatar)
+                : 'https://ui-avatars.com/api/?background=random&name=' . urlencode($bid->provider->full_name);
+
+
+            $ratingStats = Review::where('provider_id', $bid->provider_id)
+                ->selectRaw('AVG(rating) as average_rating, COUNT(*) as total_reviews')
+                ->first();
+
+            $bid->average_rating = $ratingStats->average_rating
+                ? number_format($ratingStats->average_rating, 1)
+                : 0;
+        }
 
         return response()->json([
             'status' => true,

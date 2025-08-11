@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\User;
 
 use App\Http\Controllers\Controller;
+use App\Models\Quote;
 use App\Models\Review;
 use App\Models\User;
 use Illuminate\Http\Request;
