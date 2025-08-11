@@ -62,6 +62,17 @@ class BrowseQuoteController extends Controller
             ]);
         }
 
+        $provider_id = Bid::where('quote_id', $request->id)
+            ->where('provider_id', Auth::id())
+            ->first()
+            ->provider_id ?? null;
+
+        if ($provider_id == Auth::id()) {
+            $quote->haveBid = true;
+        } else {
+            $quote->haveBid = false;
+        }
+
         $decoded = json_decode($quote->photos, true);
         if (is_string($decoded)) {
             $decoded = json_decode($decoded, true);
