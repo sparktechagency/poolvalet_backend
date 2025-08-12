@@ -7,6 +7,8 @@ use App\Models\Bid;
 use App\Models\Profile;
 use App\Models\Quote;
 use App\Models\Review;
+use App\Models\User;
+use App\Notifications\CanceledNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -34,7 +36,7 @@ class BidController extends Controller
                 ? number_format($ratingStats->average_rating, 1)
                 : 0;
 
-            $bid->button = Quote::where('id',$request->quote_id)->first()->status;
+            $bid->button = Quote::where('id', $request->quote_id)->first()->status;
         }
 
         return response()->json([
@@ -122,18 +124,42 @@ class BidController extends Controller
                     'message' => 'Quote not found'
                 ]);
             }
+
             $bids_of_quote = Bid::where('quote_id', $request->quote_id)->where('bid_status', 'public')->first();
+
             if ($bids_of_quote) {
+
                 $bids_of_quote->status = 'Canceled';
+
                 $bids_of_quote->save();
+
                 $quote->delete();
+
                 $profile = Profile::where('user_id', $quote->user_id)->first();
+
                 $profile->increment('canceled_order');
+
                 if ($profile->order_accept > 0) {
                     $profile->decrement('order_accept');
                 } else {
                     $profile->order_accept = 0;
                 }
+
+
+                $provider = User::where('id', $bids_of_quote->provider_id)->first();
+
+                $user = User::where('id', $quote->user_id)->first();
+
+                $data = [
+                    'user_id' => $user->id,
+                    'user_name' => $user->full_name,
+                    'user_avatar' => $user->avatar
+                        ? asset($user->avatar)
+                        : 'https://ui-avatars.com/api/?background=random&name=' . urlencode($user->full_name)
+                ];
+
+                $provider->notify(new CanceledNotification($data));
+
                 return response()->json([
                     'status' => true,
                     'message' => 'Order canceled successfully'
