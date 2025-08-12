@@ -3,13 +3,14 @@
 use App\Http\Controllers\Api\Admin\CategoryController;
 use App\Http\Controllers\Api\Admin\PageController;
 use App\Http\Controllers\Api\Admin\TransactionController;
-use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\Admin\QuoteListingController;
 use App\Http\Controllers\Api\Admin\SubscriptionController;
 use App\Http\Controllers\Api\Admin\UserManageController;
 use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\Auth\SocialAuthController;
 use App\Http\Controllers\Api\ChatController;
+use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\User\QuoteController;
 use App\Http\Controllers\Api\Provider\BrowseQuoteController;
 use App\Http\Controllers\Api\Provider\BuyPlanController;
@@ -41,6 +42,12 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/change-password', [AuthController::class, 'changePassword']);
     Route::get('/get-profile', [AuthController::class, 'getProfile']);
     Route::post('/update-password', [AuthController::class, 'updatePassword']);
+
+     // notification
+    Route::get('/get-notifications', [NotificationController::class, 'getNotifications']);
+    Route::post('/read', [NotificationController::class, 'read']);
+    Route::post('/read-all', [NotificationController::class, 'readAll']);
+    Route::get('/notification-status', [NotificationController::class, 'status']);
 
     // ADMIN
     Route::middleware('admin')->prefix('admin')->group(function () {

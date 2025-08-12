@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Quote;
 use App\Models\Review;
 use App\Models\User;
+use App\Notifications\CreateQuoteNotification;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -87,6 +88,12 @@ class QuoteController extends Controller
 
         $quote->photos = json_decode($quote->photos, true);
         $quote->time = Carbon::createFromFormat('H:i', $quote->time)->format('g:i A');
+
+        // // Notify post user
+        // $notifyUsers = User::where('role', 'PROVIDER')->get();
+        // foreach ($notifyUsers as $notifyUser) {
+        //     $notifyUser->notify(new CreateQuoteNotification($quote));
+        // }
 
         return response()->json([
             'status' => true,

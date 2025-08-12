@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Bid;
 use App\Models\Profile;
 use App\Models\Quote;
+use App\Models\User;
+use App\Notifications\ServiceCompletedNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -74,7 +76,7 @@ class MyServiceController extends Controller
 
     public function cancelBid(Request $request, $id = null)
     {
-        $bid = Bid::where('id',$id)->first();
+        $bid = Bid::where('id', $id)->first();
 
         if (!$bid) {
             return response()->json([
@@ -91,33 +93,50 @@ class MyServiceController extends Controller
         ]);
     }
 
-    public function markAsComplete(Request $request){
-        $quote = Quote::where('id',$request->quote_id)->first();
+    public function markAsComplete(Request $request)
+    {
+        $quote = Quote::where('id', $request->quote_id)->first();
         if (!$quote) {
             return response()->json([
-                'status'=> false,
-                'message'=> 'Quote not found'
+                'status' => false,
+                'message' => 'Quote not found'
             ]);
         }
 
         $quote->status = 'Completed';
         $quote->save();
 
-        $profile = Profile::where('user_id',Auth::id())->first();
+        $profile = Profile::where('user_id', Auth::id())->first();
         $profile->increment('completed_services');
 
+
+        $quote = Quote::where('id', $request->quote_id)->first();
+        $user = User::where('id', $quote->user_id)->first();
+
+        $provider = User::where('id', Auth::id())->first();
+
+        $data = [
+            'provider_id' => $provider->id,
+            'provider_name' => $provider->full_name,
+            'provider_avatar' => $provider->avatar
+                ? asset($provider->avatar)
+                : 'https://ui-avatars.com/api/?background=random&name=' . urlencode($provider->full_name)
+        ];
+
+        $user->notify(new ServiceCompletedNotification($data));
+
         return response()->json([
-            'status'=> true,
-            'message'=> 'Make as completed',
-            'data'=> $quote
+            'status' => true,
+            'message' => 'Make as completed',
+            'data' => $quote
         ]);
     }
 
     public function myEarnings(Request $request)
     {
-         $mark_as_complete_quotes = Bid::where('status', 'Accepted')->where('provider_id',Auth::id())->pluck('quote_id')->toArray();
+        $mark_as_complete_quotes = Bid::where('status', 'Accepted')->where('provider_id', Auth::id())->pluck('quote_id')->toArray();
 
-         $my_earnings = Quote::whereIn('id', $mark_as_complete_quotes)->where('status','Completed')->get();
+        $my_earnings = Quote::whereIn('id', $mark_as_complete_quotes)->where('status', 'Completed')->get();
 
         if (!$my_earnings) {
             return response()->json([

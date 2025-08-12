@@ -8,6 +8,7 @@ use App\Models\Category;
 use App\Models\Plan;
 use App\Models\Quote;
 use App\Models\User;
+use App\Notifications\SelectServiceNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -272,7 +273,7 @@ class BrowseQuoteController extends Controller
 
     public function makeFinalSaveYourBid(Request $request)
     {
-        $bid = Bid::where('quote_id', $request->quote_id)
+         $bid = Bid::where('quote_id', $request->quote_id)
             ->where('bid_status', 'Private')
             ->where('provider_id', Auth::id())
             ->first();
@@ -297,6 +298,21 @@ class BrowseQuoteController extends Controller
 
         $bid->bid_status = 'Public';
         $bid->save();
+
+
+        $quote = Quote::where('id',$request->quote_id)->first();
+        $user = User::where('id',$quote->user_id)->first();
+        $provider = User::where('id',$bid->provider_id)->first();
+
+        $data = [
+            'provider_id' => $provider->id,
+            'provider_name' => $provider->full_name,
+            'provider_avatar' => $provider->avatar
+                ? asset($provider->avatar)
+                : 'https://ui-avatars.com/api/?background=random&name=' . urlencode($provider->full_name)
+        ];
+
+        $user->notify(new SelectServiceNotification($data));
 
         return response()->json([
             'status' => true,
