@@ -141,6 +141,10 @@ class PaymentController extends Controller
 
                 ]);
 
+                $quote = Quote::where('id',$request->quote_id)->first();
+                $quote->is_paid = true;
+                $quote->save();
+
                 return response()->json([
                     'status' => true,
                     'message' => 'Transaction recorded successfully',

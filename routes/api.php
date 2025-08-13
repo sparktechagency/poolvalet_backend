@@ -45,8 +45,8 @@ Route::middleware('auth:api')->group(function () {
 
      // notification
     Route::get('/get-notifications', [NotificationController::class, 'getNotifications']);
-    Route::post('/read', [NotificationController::class, 'read']);
-    Route::post('/read-all', [NotificationController::class, 'readAll']);
+    Route::patch('/read', [NotificationController::class, 'read']);
+    Route::patch('/read-all', [NotificationController::class, 'readAll']);
     Route::get('/notification-status', [NotificationController::class, 'status']);
 
     // ADMIN

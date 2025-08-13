@@ -22,7 +22,6 @@ class NotificationController extends Controller
             'data' => $notifications
         ]);
     }
-
     public function read(Request $request)
     {
         $validator = Validator::make($request->all(), [
