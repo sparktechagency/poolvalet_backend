@@ -215,7 +215,6 @@ class QuoteController extends Controller
             'quotes' => $quotes
         ]);
     }
-
     public function searchProvider(Request $request)
     {
         $search = trim($request->query('search'));
@@ -249,16 +248,9 @@ class QuoteController extends Controller
         ]);
 
     }
-
     public function getMyQuotes(Request $request)
     {
-        $query = Quote::where('user_id', Auth::id());
-
-        // ✅ Optional status filter
-        if ($request->has('status') && in_array($request->status, ['Pending', 'In progress', 'Completed'])) {
-            $query->where('status', $request->status);
-        }
-
+        $query = Quote::where('user_id', Auth::id())->where('status', 'Pending');
         $quotes = $query->orderBy('created_at', 'desc')
             ->paginate($request->per_page ?? 10);
 
@@ -270,12 +262,11 @@ class QuoteController extends Controller
 
         return response()->json([
             'status' => true,
-            'isStatus' => $request->status,
+            'isStatus' => 'Pending',
             'message' => 'Get my all quotes',
             'quotes' => $quotes
         ]);
     }
-
     public function viewQuote($id = null)
     {
         $quote = Quote::with('user.profile')->find($id);

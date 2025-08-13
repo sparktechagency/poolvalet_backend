@@ -15,40 +15,25 @@ class MyServiceController extends Controller
 {
     public function myServiceQuotes(Request $request)
     {
-        $userId = Auth::id();
+        $status = $request->status;
 
-        $perPage = $request->per_page ?? 10;
+        if($request->status == 'In progress'){
+            $status = 'Accepted';
+        }
 
-        // Step 1: শুধু provider_id এবং bid_status অনুযায়ী paginate করো
-        $bidsPaginator = Bid::with([
-            'quote' => function ($query) use ($request) {
-                $query->select('id', 'user_id', 'service', 'service_type', 'status');
-                if ($request->has('status') && $request->status != null) {
-                    $query->where('status', $request->status);
-                }
-            },
-            'quote.user' => function ($query) use ($request) {
-                $query->select('id', 'full_name', 'avatar');
-
-            }
-        ])
-            ->where('provider_id', $userId)
+        $bids = Bid::with('quote')
+            ->where('status',$status)
+            ->where('provider_id', Auth::id())
             ->where('bid_status', 'Public')
-            ->select('id', 'quote_id', 'provider_id', 'price_offered')
             ->latest()
-            ->paginate($perPage);
+            ->paginate($request->per_page ?? 10);
 
-        // Step 2: Only keep bids that have a quote
-        $filteredBids = $bidsPaginator->getCollection()->filter(function ($bid) {
-            return $bid->quote !== null;
-        });
 
-        // Step 3: Decode quote->photos
-        foreach ($filteredBids as $bid) {
 
-            $bid->quote->user->avatar = $bid->quote->user->avatar
-                ? asset($bid->quote->user->avatar)
-                : 'https://ui-avatars.com/api/?background=random&name=' . urlencode($bid->quote->user->full_name);
+        foreach ($bids as $bid) {
+            $bid->quote->avatar = $bid->quote->avatar
+                ? asset($bid->quote->avatar)
+                : 'https://ui-avatars.com/api/?background=random&name=' . urlencode($bid->quote->full_name);
 
             $quote = $bid->quote;
 
@@ -63,16 +48,12 @@ class MyServiceController extends Controller
             }
         }
 
-        // Step 4: Re-attach filtered data into paginator
-        $bidsPaginator->setCollection($filteredBids->values());
-
         return response()->json([
             'status' => true,
-            'message' => 'Get my service quotes' . ($request->status ? ' with ' . $request->status . ' status' : ''),
-            'data' => $bidsPaginator
+            'message' => 'Get my service quotes.',
+            'data' => $bids
         ]);
     }
-
 
     public function cancelBid(Request $request, $id = null)
     {
@@ -95,7 +76,11 @@ class MyServiceController extends Controller
 
     public function markAsComplete(Request $request)
     {
-        $quote = Quote::where('id', $request->quote_id)->first();
+
+        $bids_of_quote = Bid::where('id', $request->bid_id)->where('bid_status', 'public')->first();
+
+         $quote = Quote::where('id', $bids_of_quote->quote_id)->first();
+        
         if (!$quote) {
             return response()->json([
                 'status' => false,
@@ -103,14 +88,19 @@ class MyServiceController extends Controller
             ]);
         }
 
-        $quote->status = 'Completed';
-        $quote->save();
+        if ($bids_of_quote) {
+            $bids_of_quote->status = 'Completed';
+            $bids_of_quote->save();
 
-        $profile = Profile::where('user_id', Auth::id())->first();
-        $profile->increment('completed_services');
+            $quote->status = 'Completed';
+            $quote->save();
+
+            $profile = Profile::where('user_id', Auth::id())->first();
+            $profile->increment('completed_services');
+        }
 
 
-        $quote = Quote::where('id', $request->quote_id)->first();
+        $quote = Quote::where('id', $bids_of_quote->quote_id)->first();
         $user = User::where('id', $quote->user_id)->first();
 
         $provider = User::where('id', Auth::id())->first();

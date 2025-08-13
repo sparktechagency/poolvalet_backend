@@ -16,9 +16,9 @@ class BidController extends Controller
 {
     public function getCheckBids(Request $request)
     {
-        $bids = Bid::with('provider')->where('bid_status', 'Public')
+        return $bids = Bid::with('provider')->where('bid_status', 'Public')
+            ->where('status', 'Pending')
             ->where('quote_id', $request->quote_id)
-            ->where('status', null)
             ->paginate($request->per_page ?? 10);
 
         foreach ($bids as $bid) {
@@ -47,7 +47,14 @@ class BidController extends Controller
     }
     public function getAcceptedBids(Request $request)
     {
-        $bids = Bid::where('status', 'Accepted')
+
+        if ($request->status == 'Completed') {
+            $status = 'Completed';
+        } else {
+            $status = 'Accepted';
+        }
+
+        $bids = Bid::where('status', $status)
             ->where('bid_status', 'Public')
             ->paginate($request->per_page ?? 10);
 
@@ -78,6 +85,7 @@ class BidController extends Controller
     {
         try {
             $bids_of_quote = Bid::where('id', $request->bid_id)->where('bid_status', 'public')->first();
+
             $bids_of_quote_status = Bid::where('quote_id', $bids_of_quote->quote_id)
                 ->where('bid_status', 'public')
                 ->pluck('status')

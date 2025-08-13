@@ -296,6 +296,7 @@ class BrowseQuoteController extends Controller
             $check_plan->save();
         }
 
+        $bid->status = 'Pending';
         $bid->bid_status = 'Public';
         $bid->save();
 

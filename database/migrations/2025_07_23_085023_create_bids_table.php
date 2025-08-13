@@ -17,7 +17,7 @@ return new class extends Migration
             $table->unsignedInteger('provider_id');
             $table->decimal('price_offered',10,2);
             $table->text('quote_outline')->nullable();
-            $table->enum('status', ['Accepted', 'Canceled'])->nullable();
+            $table->enum('status', ['Pending','Accepted','Completed','Canceled'])->default('Pending');
             $table->enum('bid_status', ['Public','Private'])->default('Private');
             $table->timestamps();
         });

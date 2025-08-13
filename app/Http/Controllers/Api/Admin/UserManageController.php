@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class UserManageController extends Controller
 {
@@ -92,10 +94,27 @@ class UserManageController extends Controller
             default => ucfirst(strtolower($user->role)),
         };
 
+        if (User::where('id', $id)->first()->role == 'USER') {
+            $col = 'user_id';
+            $with = 'provider';
+        } elseif (User::where('id', $id)->first()->role == 'PROVIDER') {
+            $col = 'provider_id';
+            $with = 'user';
+        }
+
+        $transactions = Transaction::with($with)->where($col, $id)->get();
+
+        foreach ($transactions as $transaction) {
+            $transaction->$with->avatar = $transaction->$with->avatar
+                ? asset($transaction->$with->avatar)
+                : 'https://ui-avatars.com/api/?background=random&name=' . urlencode($transaction->$with->full_name);
+        }
+
         return response()->json([
             'status' => true,
             'message' => 'User with profile loaded successfully.',
-            'user' => $user
+            'user' => $user,
+            'transactions' => $transactions
         ]);
     }
 
