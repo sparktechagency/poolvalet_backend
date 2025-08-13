@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\Admin\CategoryController;
+use App\Http\Controllers\Api\Admin\DashboardController;
 use App\Http\Controllers\Api\Admin\PageController;
 use App\Http\Controllers\Api\Admin\TransactionController;
 use App\Http\Controllers\Api\ProfileController;
@@ -51,6 +52,9 @@ Route::middleware('auth:api')->group(function () {
 
     // ADMIN
     Route::middleware('admin')->prefix('admin')->group(function () {
+        // dashboard
+        Route::get('get-data',[DashboardController::class,'getData']);
+        
         // users manage
         Route::get('/get-users', [UserManageController::class, 'getUsers']);
         Route::delete('/delete-user/{id?}', [UserManageController::class, 'deleteUser']);
