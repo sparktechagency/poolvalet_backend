@@ -54,11 +54,13 @@ Route::middleware('auth:api')->group(function () {
     Route::middleware('admin')->prefix('admin')->group(function () {
         // dashboard
         Route::get('get-data',[DashboardController::class,'getData']);
+        Route::get('get-chart',[DashboardController::class,'getChart']);
         
         // users manage
         Route::get('/get-users', [UserManageController::class, 'getUsers']);
         Route::delete('/delete-user/{id?}', [UserManageController::class, 'deleteUser']);
         Route::get('/view-user/{id?}', [UserManageController::class, 'viewUser']);
+        Route::get('/activities-chart', [UserManageController::class, 'activitiesChart']);
 
         // quote listing
         Route::get('/get-quote-listing', [QuoteListingController::class, 'getQuoteListing']);

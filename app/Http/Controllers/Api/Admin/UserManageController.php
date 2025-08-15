@@ -3,8 +3,11 @@
 namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Bid;
 use App\Models\Transaction;
 use App\Models\User;
+use Carbon\Carbon;
+use Carbon\CarbonPeriod;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -118,5 +121,132 @@ class UserManageController extends Controller
         ]);
     }
 
+    // public function activitiesChart(Request $request)
+    // {
+    //     $total_earning = Transaction::selectRaw('
+    //         DATE(created_at) as date,
+    //         COUNT(*) as total_transactions,
+    //         SUM(amount) as total_amount
+    //     ')
+    //         ->where('provider_id', $request->provider_id)
+    //         ->where('created_at', '>=', Carbon::now()->subMonths($request->filter))
+    //         ->groupByRaw('DATE(created_at)')
+    //         ->get()
+    //         ->map(function ($item) {
+    //             return [
+    //                 'date' => $item->date,
+    //                 'day' => Carbon::parse($item['date'])->format('D'),
+    //                 'total_transactions' => (int) $item->total_transactions >= 1000
+    //                     ? number_format((int) $item->total_transactions / 1000) . 'k'
+    //                     : number_format((int) $item->total_transactions),
+    //                 'total_amount' => (float) $item->total_amount >= 1000
+    //                     ? number_format((float) $item->total_amount / 1000, 2) . 'k'
+    //                     : number_format((float) $item->total_amount, 2),
+    //             ];
+    //         });
 
+    //     $completed_service = Bid::selectRaw('DATE(created_at) as date, COUNT(*) as count')
+    //         ->where('provider_id', $request->provider_id)
+    //         ->where('created_at', '>=', Carbon::now()->subMonths($request->filter))
+    //         ->groupBy('date')
+    //         ->orderBy('date')
+    //         ->get()
+    //         ->map(function ($item) {
+    //             return [
+    //                 'date' => $item->date,
+    //                 'count' => $item->count >= 1000
+    //                     ? number_format($item->count / 1000) . 'k'
+    //                     : number_format($item->count),
+    //                 'day' => Carbon::parse($item['date'])->format('D')
+    //             ];
+    //         });
+
+    //     return response()->json([
+    //         'status' => true,
+    //         'message' => 'Activities chart data for ' . $request->filter . ' days',
+    //         'completed_service' => $completed_service,
+    //         'total_earning' => $total_earning,
+    //     ]);
+
+    // }
+
+    public function activitiesChart(Request $request)
+    {
+        $startDate = Carbon::now()->subDays(6)->startOfDay();
+        $endDate = Carbon::now()->endOfDay();
+
+        // --- Generate all dates ---
+        $allDates = collect();
+        $period = new \DatePeriod(
+            $startDate,
+            new \DateInterval('P1D'),
+            $endDate->copy()
+        );
+        foreach ($period as $date) {
+            $allDates->push([
+                'date' => $date->format('Y-m-d'),
+                'day' => $date->format('D'),
+                'total_transactions' => 0,
+                'total_amount' => number_format(0, 2),
+            ]);
+        }
+
+        // --- Total Earning Data ---
+        $totalEarning = Transaction::selectRaw('
+        DATE(created_at) as date,
+        COUNT(*) as total_transactions,
+        SUM(amount) as total_amount
+    ')
+            ->where('provider_id', $request->provider_id)
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->groupByRaw('DATE(created_at)')
+            ->pluck('total_transactions', 'date')
+            ->map(function ($transactions, $date) use ($request) {
+                $totalAmount = Transaction::whereDate('created_at', $date)
+                    ->where('provider_id', request()->provider_id)
+                    ->sum('amount');
+
+                return [
+                    'date' => $date,
+                    'day' => Carbon::parse($date)->format('D'),
+                    'total_transactions' => (int) $transactions >= 1000
+                        ? number_format($transactions / 1000) . 'k'
+                        : number_format($transactions),
+                    'total_amount' => (float) $totalAmount >= 1000
+                        ? number_format($totalAmount / 1000, 2) . 'k'
+                        : number_format($totalAmount, 2),
+                ];
+            });
+
+        // Merge with allDates (fill missing days)
+        $totalEarningFull = $allDates->map(function ($day) use ($totalEarning) {
+            return $totalEarning[$day['date']] ?? $day;
+        });
+
+        // --- Completed Services Data ---
+        $completedService = Bid::selectRaw('DATE(created_at) as date, COUNT(*) as count')
+            ->where('provider_id', $request->provider_id)
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->groupBy('date')
+            ->pluck('count', 'date');
+
+        $completedServiceFull = $allDates->map(function ($day) use ($completedService) {
+            return [
+                'date' => $day['date'],
+                'day' => $day['day'],
+                'count' => isset($completedService[$day['date']])
+                    ? ($completedService[$day['date']] >= 1000
+                        ? number_format($completedService[$day['date']] / 1000) . 'k'
+                        : number_format($completedService[$day['date']]))
+                    : '0'
+            ];
+        });
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Activities chart data',
+            'completed_service' => $completedServiceFull,
+            'total_earning' => $totalEarningFull,
+        ]);
+    }
 }

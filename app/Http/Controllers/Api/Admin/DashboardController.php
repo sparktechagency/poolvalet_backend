@@ -73,34 +73,52 @@ class DashboardController extends Controller
                 : number_format($diff_revenues, 2) . ' increase in than last ' . $request->filter . ' days';
         }
 
+        return response()->json([
+            'status' => true,
+            'message' => 'Get data for ' . $request->filter . ' days.',
+            'active_users' => $active_users >= 1000 ? number_format($active_users / 1000) . 'k' : number_format($active_users),
+            'up_down_active_users' => $up_down_active_users,
+            'transactions' => $transactions >= 1000 ? number_format($transactions / 1000, 2) . 'k' : number_format($transactions, 2),
+            'up_down_transactions' => $up_down_transactions,
+            'revenues' => $revenues >= 1000 ? number_format($revenues / 1000) . 'k' : number_format($revenues, 2),
+            'up_down_revenues' => $up_down_revenues,
+        ]);
 
-        // active user chart
-        $active_users_chart = User::selectRaw('DATE(created_at) as date, COUNT(*) as count')
+    }
+
+    public function getChart(Request $request)
+    {
+        // active users
+        $dates = collect();
+        for ($i = 0; $i < 7; $i++) {
+            $dates->push(Carbon::now()->subDays(6 - $i)->format('Y-m-d'));
+        }
+
+        $active_users = User::selectRaw('DATE(created_at) as date, COUNT(*) as count')
             ->where('role', 'USER')
-            ->where('created_at', '>=', Carbon::now()->subDays(7))
+            ->where('created_at', '>=', Carbon::now()->subDays(6)->startOfDay())
             ->groupBy('date')
             ->orderBy('date')
-            ->get()
-            ->map(function ($item) {
-                return [
-                    'date' => $item->date,
-                    'count' => $item->count >= 1000
-                        ? number_format($item->count / 1000) . 'k'
-                        : number_format($item->count),
-                    'day' => Carbon::parse($item['date'])->format('D')
-                ];
-            });
+            ->pluck('count', 'date'); // [ '2025-08-07' => 5, '2025-08-09' => 2, ... ]
 
+        $active_users_chart = $dates->map(function ($date) use ($active_users) {
+            $count = $active_users->get($date, 0);
+            return [
+                'date' => $date,
+                'count' => $count >= 1000 ? number_format($count / 1000) . 'k' : number_format($count),
+                'day' => Carbon::parse($date)->format('D')
+            ];
+        });
 
-        // Transactions // Plans // merge 
-        $startDate = Carbon::now()->subDays(7);
-
+        // Transactions
+        $startDate = Carbon::now()->subDays(6)->startOfDay(); // last 7 days including today
+        $endDate = Carbon::now()->endOfDay();
         $transactionsData = Transaction::selectRaw('
-        DATE(created_at) as date,
-        COUNT(*) as total_transactions,
-        SUM(amount) as total_amount
-    ')
-            ->where('created_at', '>=', $startDate)
+            DATE(created_at) as date,
+            COUNT(*) as total_transactions,
+            SUM(amount) as total_amount
+        ')
+            ->whereBetween('created_at', [$startDate, $endDate])
             ->groupByRaw('DATE(created_at)')
             ->get()
             ->map(function ($item) {
@@ -110,13 +128,12 @@ class DashboardController extends Controller
                     'total_amount' => (float) $item->total_amount
                 ];
             });
-
         $plansData = Plan::selectRaw('
-        DATE(created_at) as date,
-        COUNT(*) as total_transactions,
-        SUM(price) as total_amount
-    ')
-            ->where('created_at', '>=', $startDate)
+            DATE(created_at) as date,
+            COUNT(*) as total_transactions,
+            SUM(price) as total_amount
+        ')
+            ->whereBetween('created_at', [$startDate, $endDate])
             ->groupByRaw('DATE(created_at)')
             ->get()
             ->map(function ($item) {
@@ -126,7 +143,6 @@ class DashboardController extends Controller
                     'total_amount' => (float) $item->total_amount
                 ];
             });
-
         $transactions_chart = collect()
             ->merge($transactionsData)
             ->merge($plansData)
@@ -142,80 +158,71 @@ class DashboardController extends Controller
                         ? number_format($items->sum('total_amount') / 1000, 2) . 'k'
                         : number_format($items->sum('total_amount'), 2)
                 ];
-            })
-            ->sortBy('date')
-            ->values();
+            });
+        $full_weeks = collect();
+        $currentDate = $startDate->copy();
+        while ($currentDate <= $endDate) {
+            $dateStr = $currentDate->toDateString();
+            if (!isset($transactions_chart[$dateStr])) {
+                $full_weeks->put($dateStr, [
+                    'date' => $dateStr,
+                    'day' => $currentDate->format('D'),
+                    'total_transactions' => 0,
+                    'total_amount' => number_format(0, 2)
+                ]);
+            } else {
+                $full_weeks->put($dateStr, $transactions_chart[$dateStr]);
+            }
+            $currentDate->addDay();
+        }
+        $transactions_chart = $full_weeks->sortBy('date')->values();
 
-
-        // $fee = Transactions/100 * 5 // Plans // merge 
-        $startDate = Carbon::now()->subDays(7);
-
+        // revenues
+        $startDate = Carbon::now()->subDays(6)->startOfDay(); // last 7 days
+        $endDate = Carbon::now()->endOfDay();
         $feeData = Transaction::selectRaw('
-        DATE(created_at) as date,
-        COUNT(*) as total_transactions,
-        SUM(amount) as total_amount
-    ')
-            ->where('created_at', '>=', $startDate)
+            DATE(created_at) as date,
+            COUNT(*) as total_transactions,
+            SUM(amount) as total_amount
+        ')
+            ->whereBetween('created_at', [$startDate, $endDate])
             ->groupByRaw('DATE(created_at)')
-            ->get()
-            ->map(function ($item) {
-                return [
-                    'date' => $item->date,
-                    'total_transactions' => (int) $item->total_transactions,
-                    'total_amount' => (float) $item->total_amount / 100 * 5
-                ];
+            ->pluck('total_amount', 'date')
+            ->map(function ($amount) {
+                return (float) $amount / 100 * 5;
             });
-
         $plansData = Plan::selectRaw('
-        DATE(created_at) as date,
-        COUNT(*) as total_transactions,
-        SUM(price) as total_amount
-    ')
-            ->where('created_at', '>=', $startDate)
+            DATE(created_at) as date,
+            COUNT(*) as total_transactions,
+            SUM(price) as total_amount
+            ')
+            ->whereBetween('created_at', [$startDate, $endDate])
             ->groupByRaw('DATE(created_at)')
-            ->get()
-            ->map(function ($item) {
-                return [
-                    'date' => $item->date,
-                    'total_transactions' => (int) $item->total_transactions,
-                    'total_amount' => (float) $item->total_amount
-                ];
-            });
-
-        $revenues_chart = collect()
-            ->merge($feeData)
-            ->merge($plansData)
-            ->groupBy('date')
-            ->map(function ($items, $date) {
-                return [
-                    'date' => $date,
-                    'day' => Carbon::parse($date)->format('D'),
-                    'total_transactions' => $items->sum('total_transactions') >= 1000
-                        ? number_format($items->sum('total_transactions') / 1000) . 'k'
-                        : number_format($items->sum('total_transactions')),
-                    'total_amount' => $items->sum('total_amount') >= 1000
-                        ? number_format($items->sum('total_amount') / 1000, 2) . 'k'
-                        : number_format($items->sum('total_amount'), 2)
-                ];
-            })
-            ->sortBy('date')
-            ->values();
-
-
+            ->pluck('total_amount', 'date');
+        $revenues_chart = collect();
+        for ($date = $startDate->copy(); $date->lte($endDate); $date->addDay()) {
+            $dateStr = $date->toDateString();
+            $transactionsCount = Transaction::whereDate('created_at', $dateStr)->count()
+                + Plan::whereDate('created_at', $dateStr)->count();
+            $totalAmount = ($feeData[$dateStr] ?? 0) + ($plansData[$dateStr] ?? 0);
+            $revenues_chart->push([
+                'date' => $dateStr,
+                'day' => $date->format('D'),
+                'total_transactions' => $transactionsCount >= 1000
+                    ? number_format($transactionsCount / 1000) . 'k'
+                    : number_format($transactionsCount),
+                'total_amount' => $totalAmount >= 1000
+                    ? number_format($totalAmount / 1000, 2) . 'k'
+                    : number_format($totalAmount, 2)
+            ]);
+        }
 
         return response()->json([
             'status' => true,
-            'message' => 'Get dashboard data',
-            'active_users' => $active_users >= 1000 ? number_format($active_users / 1000) . 'k' : number_format($active_users),
-            'up_down_active_users' => $up_down_active_users,
-            'transactions' => $transactions >= 1000 ? number_format($transactions / 1000, 2) . 'k' : number_format($transactions, 2),
-            'up_down_transactions' => $up_down_transactions,
-            'revenues' => $revenues >= 1000 ? number_format($revenues / 1000) . 'k' : number_format($revenues, 2),
-            'up_down_revenues' => $up_down_revenues,
+            'message' => 'Get chart.',
             'active_users_chart' => $active_users_chart,
             'transactions_chart' => $transactions_chart,
             'revenues_chart' => $revenues_chart
         ]);
-
     }
 }
