@@ -175,7 +175,6 @@ class UserManageController extends Controller
         $startDate = Carbon::now()->subDays(6)->startOfDay();
         $endDate = Carbon::now()->endOfDay();
 
-        // --- Generate all dates ---
         $allDates = collect();
         $period = new \DatePeriod(
             $startDate,
@@ -191,7 +190,6 @@ class UserManageController extends Controller
             ]);
         }
 
-        // --- Total Earning Data ---
         $totalEarning = Transaction::selectRaw('
         DATE(created_at) as date,
         COUNT(*) as total_transactions,
@@ -218,12 +216,10 @@ class UserManageController extends Controller
                 ];
             });
 
-        // Merge with allDates (fill missing days)
         $totalEarningFull = $allDates->map(function ($day) use ($totalEarning) {
             return $totalEarning[$day['date']] ?? $day;
         });
 
-        // --- Completed Services Data ---
         $completedService = Bid::selectRaw('DATE(created_at) as date, COUNT(*) as count')
             ->where('provider_id', $request->provider_id)
             ->whereBetween('created_at', [$startDate, $endDate])
