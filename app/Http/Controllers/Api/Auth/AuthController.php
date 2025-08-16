@@ -325,6 +325,10 @@ class AuthController extends Controller
             ], 401);
         }
 
+        $user->update([
+            'last_login_at' => Carbon::now(),
+        ]);
+
         // Generate JWT Token with remember me
         $tokenExpiry = $request->remember_me == '1' ? Carbon::now()->addDays(30) : Carbon::now()->addDays(7);
         $customClaims = ['exp' => $tokenExpiry->timestamp];

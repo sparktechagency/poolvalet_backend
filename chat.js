@@ -14,61 +14,66 @@ const io = new Server(server, {
 app.use(cors());
 app.use(express.static("public"));
 
-let users = {};
-const groups = {};
+let users = {}; // userId -> socketId
+let onlineUsers = new Set(); // শুধু userId রাখবে
 
 io.on("connection", (socket) => {
-  console.log(`User Connected: ${socket.id}`);
+    console.log(`User Connected: ${socket.id}`);
 
-  const userId = socket.handshake.query.userId;
+    const userId = socket.handshake.query.userId;
+    users[userId] = socket.id;
+    socket.userId = userId; // disconnect এ কাজ হবে
 
-  users[userId] = socket.id;
-  console.log("socket is", socket.id, "user id", userId);
-  console.log(users);
+    // ✅ online list এ add করলাম
+    onlineUsers.add(userId);
+    io.emit("updateUsers", Array.from(onlineUsers));
 
-  // socket.on('chat',function(msg){
-  //     io.sockets.emit('chat',msg);
-  // });
+    console.log("socket is", socket.id, "user id", userId);
+    console.log("Users Map:", users);
+    console.log("Online Users:", Array.from(onlineUsers));
 
-  socket.on("privateMessage", ({ receiverId, message }) => {
-    console.log(
-      `Sending private message from ${userId} to ${receiverId} : ${message}`
-    );
+    // 🔹 Private Message Handle
+    socket.on("privateMessage", ({ receiverId, message }) => {
+        console.log(
+            `Sending private message from ${userId} to ${receiverId} : ${message}`
+        );
 
-    const senderSocketId = socket.id;
-    const receiverSocketId = users[receiverId];
+        const senderSocketId = socket.id;
+        const receiverSocketId = users[receiverId];
 
-    // Send message to sender (confirmation or for UI update)
-    io.to(senderSocketId).emit("privateMessage", {
-      receiver_id: receiverId,
-      sender_id: userId,
-      message,
+        // Send message to sender (confirmation or for UI update)
+        io.to(senderSocketId).emit("privateMessage", {
+            receiver_id: receiverId,
+            sender_id: userId,
+            message,
+        });
+
+        // Send message to receiver if online
+        if (receiverSocketId) {
+            io.to(receiverSocketId).emit("privateMessage", {
+                receiver_id: receiverId,
+                sender_id: userId,
+                message,
+            });
+        } else {
+            console.log(`User ${receiverId} not found or offline`);
+        }
     });
 
-    // Send message to receiver if online
-    if (receiverSocketId) {
-      io.to(receiverSocketId).emit("privateMessage", {
-        receiver_id: receiverId,
-        sender_id: userId,
-        message,
-      });
-    } else {
-      console.log(`User ${receiverId} not found or offline`);
-    }
-  });
+    // 🔹 Disconnect Handle
+    socket.on("disconnect", () => {
+        if (socket.userId) {
+            delete users[socket.userId]; // socketId মুছে ফেলবো
+            onlineUsers.delete(socket.userId); // online থেকে বাদ দিবো
+            io.emit("updateUsers", Array.from(onlineUsers));
+        }
 
-  socket.on("disconnect", () => {
-    for (let userId in users) {
-      if (users[userId] === socket.id) {
-        delete users[userId];
-        break;
-      }
-    }
-    console.log("User Disconnected:", socket.id);
-    console.log("Users List:", users);
-  });
+        console.log("User Disconnected:", socket.id);
+        console.log("Users Map:", users);
+        console.log("Online Users:", Array.from(onlineUsers));
+    });
 });
 
 server.listen(3000, () => {
-  console.log("Server running on http://10.10.10.65:3000");
+    console.log("Server running on http://10.10.10.65:3000");
 });
