@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\Auth\SocialAuthController;
 use App\Http\Controllers\Api\ChatController;
 use App\Http\Controllers\Api\NotificationController;
+use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\User\QuoteController;
 use App\Http\Controllers\Api\Provider\BrowseQuoteController;
 use App\Http\Controllers\Api\Provider\BuyPlanController;
@@ -21,6 +22,7 @@ use App\Http\Controllers\Api\User\BidController;
 use App\Http\Controllers\Api\User\PaymentController;
 use App\Http\Controllers\Api\User\ReviewController;
 use App\Http\Controllers\Api\User\TopProviderController;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -36,6 +38,7 @@ Route::post('/social-login', [AuthController::class, 'socialLogin']);
 // get page
 Route::get('/get-page', [PageController::class, 'getPage']);
 
+Route::get('/test',[OrderController::class,'test']);
 
 // private route for user
 Route::middleware('auth:api')->group(function () {

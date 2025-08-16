@@ -74,7 +74,10 @@ class ChatController extends Controller
 
 
         foreach ($chatUsers as $chatUser) {
-            $chatUser->last_message = Chat::where('sender_id', Auth::id())->where('receiver_id', $chatUser->id)->latest()->first()->message;
+            $chatUser->last_message = Chat::where('sender_id', Auth::id())
+                ->orWhere('receiver_id', Auth::id())
+                ->latest()
+                ->first()->message;
 
             $chatUser->avatar = $chatUser->avatar
                 ? asset($chatUser->avatar)
@@ -82,7 +85,7 @@ class ChatController extends Controller
         }
 
         foreach ($chatUsers as $chatUser) {
-            $chatUser->unreadCount = Chat::where('receiver_id', $chatUser->id)
+            $chatUser->unreadCount = Chat::where('receiver_id', Auth::id())
                 ->where('is_read', false)
                 ->count();
         }
@@ -108,14 +111,19 @@ class ChatController extends Controller
 
     public function markAsRead(Request $request)
     {
-        $request->validate([
-            'sender_id' => 'required|exists:users,id',
-        ]);
+        // $request->validate([
+        //     'sender_id' => 'required|exists:users,id',
+        // ]);
 
-        Chat::where('sender_id', $request->sender_id)
-            ->where('receiver_id', Auth::id())
+
+        $users = Chat::where('receiver_id', Auth::id())
             ->where('is_read', false)
-            ->update(['is_read' => true]);
+            ->get();
+
+        foreach ($users as $user) {
+            $user->update(['is_read' => true]);
+            $user->save();
+        }
 
         return response()->json([
             'status' => true,
@@ -128,6 +136,19 @@ class ChatController extends Controller
         $request->validate([
             'receiver_id' => 'required|exists:users,id',
         ]);
+
+    //    Chat::where('sender_id',Auth::id())->where('receiver_id',$request->receiver_id)->delete();
+
+
+
+
+        // foreach ($myChats as $myChat) {
+         
+
+        //     $myChat->message = 'This message was deleted';
+        //     $myChat->save();
+        // }
+
 
         Chat::where(function ($q) use ($request) {
             $q->where('sender_id', Auth::id())
@@ -145,13 +166,10 @@ class ChatController extends Controller
 
     public function lastMessageTime(Request $request)
     {
-        $request->validate([
-            'user_id' => 'required|exists:users,id',
-        ]);
 
-        $lastMessage = Chat::where(function ($q) use ($request) {
-            $q->where('sender_id', $request->user_id)
-                ->orWhere('receiver_id', $request->user_id);
+        $lastMessage = Chat::where(function ($q) {
+            $q->where('sender_id', Auth::id())
+                ->orWhere('receiver_id', Auth::id());
         })->latest()->first();
 
         if (!$lastMessage) {
