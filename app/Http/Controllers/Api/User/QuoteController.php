@@ -23,7 +23,6 @@ class QuoteController extends Controller
             'service_type' => 'required|string|max:255',
             'pool_depth' => 'nullable|string|max:255',
             'date' => 'required',
-            'time' => 'required',
             'zip_code' => 'required|string|max:5',
             'address' => 'required|string|max:255',
             'expected_budget' => 'nullable|numeric|min:0',
@@ -64,7 +63,7 @@ class QuoteController extends Controller
 
         // Format date & time
         $date = Carbon::createFromFormat('m/d/Y', $request->date)->format('Y-m-d');
-        $time = Carbon::parse($request->time)->format('H:i');
+        // $time = Carbon::parse($request->time)->format('H:i');
         // Carbon::createFromFormat('H:i', $request->time)->format('g:i A');
 
         // Create quote
@@ -76,7 +75,6 @@ class QuoteController extends Controller
             'service_type' => $request->service_type,
             'pool_depth' => $request->pool_depth,
             'date' => $date,
-            'time' => $time,
             'zip_code' => $request->zip_code,
             'address' => $request->address,
             'expected_budget' => $request->expected_budget ?? 0,
@@ -87,7 +85,7 @@ class QuoteController extends Controller
         ]);
 
         $quote->photos = json_decode($quote->photos, true);
-        $quote->time = Carbon::createFromFormat('H:i', $quote->time)->format('g:i A');
+        // $quote->time = Carbon::createFromFormat('H:i', $quote->time)->format('g:i A');
 
         // // Notify post user
         // $notifyUsers = User::where('role', 'PROVIDER')->get();

@@ -19,7 +19,6 @@ return new class extends Migration {
             $table->string('service_type');
             $table->string('pool_depth')->nullable();
             $table->date('date');
-            $table->time('time');
             $table->string('zip_code');
             $table->string('address');
             $table->decimal('expected_budget', 10, 2)->nullable()->default(0);
