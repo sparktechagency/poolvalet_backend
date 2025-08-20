@@ -38,6 +38,8 @@ Route::post('/social-login', [AuthController::class, 'socialLogin']);
 // get page
 Route::get('/get-page', [PageController::class, 'getPage']);
 
+
+
 Route::get('/test',[OrderController::class,'test']);
 
 // private route for user
@@ -52,6 +54,9 @@ Route::middleware('auth:api')->group(function () {
     Route::patch('/read', [NotificationController::class, 'read']);
     Route::patch('/read-all', [NotificationController::class, 'readAll']);
     Route::get('/notification-status', [NotificationController::class, 'status']);
+
+    // get category lists
+    Route::get('/get-category-lists', [CategoryController::class, 'getCategories']);
 
     // ADMIN
     Route::middleware('admin')->prefix('admin')->group(function () {

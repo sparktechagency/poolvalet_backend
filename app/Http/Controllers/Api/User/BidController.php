@@ -16,7 +16,7 @@ class BidController extends Controller
 {
     public function getCheckBids(Request $request)
     {
-        return $bids = Bid::with('provider')->where('bid_status', 'Public')
+        $bids = Bid::with('provider')->where('bid_status', 'Public')
             ->where('status', 'Pending')
             ->where('quote_id', $request->quote_id)
             ->paginate($request->per_page ?? 10);
@@ -40,6 +40,7 @@ class BidController extends Controller
         }
 
         return response()->json([
+            'total_bids_count'=>$bids->count(),
             'status' => true,
             'message' => 'Get check bids',
             'data' => $bids
@@ -73,6 +74,8 @@ class BidController extends Controller
             $bid->average_rating = $ratingStats->average_rating
                 ? number_format($ratingStats->average_rating, 1)
                 : 0;
+
+            $bid->date = Quote::where('id',$bid->quote_id)->first()->date;
         }
 
         return response()->json([

@@ -34,7 +34,7 @@ class BrowseQuoteController extends Controller
                 $q->select('id', 'full_name', 'avatar');
             }
         ])
-            ->select('id', 'user_id', 'service', 'expected_budget', 'status')
+            // ->select('id', 'user_id', 'service', 'expected_budget', 'status')
             ->where('status', 'Pending')
             ->latest()->paginate($request->per_page ?? 10);
 
@@ -43,6 +43,8 @@ class BrowseQuoteController extends Controller
             $quote->user->avatar = $quote->user->avatar
                 ? asset($quote->user->avatar)
                 : 'https://ui-avatars.com/api/?background=random&name=' . urlencode($quote->user->full_name);
+
+            $quote->photos = json_decode($quote->photos);
         }
 
         return response()->json([
@@ -80,6 +82,14 @@ class BrowseQuoteController extends Controller
         }
 
         $quote->photos = $decoded;
+
+
+
+        $quote->user->avatar = $quote->user->avatar
+            ? asset($quote->user->avatar)
+            : 'https://ui-avatars.com/api/?background=random&name=' . urlencode($quote->user->full_name);
+
+
 
         return response()->json([
             'status' => true,
@@ -273,7 +283,7 @@ class BrowseQuoteController extends Controller
 
     public function makeFinalSaveYourBid(Request $request)
     {
-         $bid = Bid::where('quote_id', $request->quote_id)
+        $bid = Bid::where('quote_id', $request->quote_id)
             ->where('bid_status', 'Private')
             ->where('provider_id', Auth::id())
             ->first();
@@ -301,9 +311,9 @@ class BrowseQuoteController extends Controller
         $bid->save();
 
 
-        $quote = Quote::where('id',$request->quote_id)->first();
-        $user = User::where('id',$quote->user_id)->first();
-        $provider = User::where('id',$bid->provider_id)->first();
+        $quote = Quote::where('id', $request->quote_id)->first();
+        $user = User::where('id', $quote->user_id)->first();
+        $provider = User::where('id', $bid->provider_id)->first();
 
         $data = [
             'provider_id' => $provider->id,

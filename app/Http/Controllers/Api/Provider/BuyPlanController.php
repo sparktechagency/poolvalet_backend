@@ -137,18 +137,18 @@ class BuyPlanController extends Controller
 
         if ($subscription->id == '1') {
 
-            // ✅ Check if user already has an Active plan
-            $current_plan = Plan::where('provider_id', Auth::id())
-                ->where('status', 'Active')
-                ->first();
+            // // ✅ Check if user already has an Active plan
+            // $current_plan = Plan::where('provider_id', Auth::id())
+            //     ->where('status', 'Active')
+            //     ->first();
                 
-            if ($current_plan) {
-                return response()->json([
-                    'status' => true,
-                    'message' => 'You current plan.',
-                    'current_plan' => $current_plan
-                ]);
-            }
+            // if ($current_plan) {
+            //     return response()->json([
+            //         'status' => true,
+            //         'message' => 'You current plan.',
+            //         'current_plan' => $current_plan
+            //     ]);
+            // }
 
             $check_free_plan = Plan::where('provider_id', Auth::id())->pluck('subscription_id')->toArray();
 

@@ -254,7 +254,7 @@ class QuoteController extends Controller
 
         foreach ($quotes as $quote) {
             $quote->photos = json_decode($quote->photos);
-            $quote->scheduled_date = Carbon::createFromFormat('Y-m-d H:i:s', $quote->date . ' ' . $quote->time)
+            $quote->scheduled_date = Carbon::createFromFormat('Y-m-d', $quote->date)
                 ->format('M d, Y h:i A');
         }
 
