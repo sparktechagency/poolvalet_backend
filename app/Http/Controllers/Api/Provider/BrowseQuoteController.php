@@ -19,14 +19,19 @@ class BrowseQuoteController extends Controller
 {
     public function browseQuotes(Request $request)
     {
-
         $category_names = Category::pluck('name')->toArray();
 
         $query = Quote::query();
 
-        // ✅ Optional status filter
+        // ✅ Optional category filter
         if ($request->has('category') && in_array($request->category, $category_names)) {
             $query->where('service', $request->category);
+        }
+
+        // ✅ Search filter (by service name)
+        if ($request->filled('search')) {
+            $query->where('service', 'LIKE', '%' . $request->search . '%')
+                ->orWhere('describe_issue', 'LIKE', '%' . $request->search . '%');
         }
 
         $quotes = $query->with([
@@ -34,9 +39,9 @@ class BrowseQuoteController extends Controller
                 $q->select('id', 'full_name', 'avatar');
             }
         ])
-            // ->select('id', 'user_id', 'service', 'expected_budget', 'status')
             ->where('status', 'Pending')
-            ->latest()->paginate($request->per_page ?? 10);
+            ->latest()
+            ->paginate($request->per_page ?? 10);
 
         // ✅ Format each user
         foreach ($quotes as $quote) {
@@ -53,6 +58,7 @@ class BrowseQuoteController extends Controller
             'data' => $quotes
         ]);
     }
+
 
     public function viewBrowseQuote(Request $request, $id = null)
     {

@@ -27,10 +27,11 @@ class QuoteController extends Controller
             'address' => 'required|string|max:255',
             'expected_budget' => 'nullable|numeric|min:0',
 
-            'photos' => 'nullable|array|max:4',
+            // ✅ Either photos OR video required
+            'photos' => 'required_without:video|array|max:4',
             'photos.*' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048',
 
-            'video' => 'nullable|file|mimetypes:video/mp4,video/quicktime|max:10240',
+            'video' => 'required_without:photos|file|mimetypes:video/mp4,video/quicktime|max:10240',
         ]);
 
         // Custom validation: Prevent both photos and video

@@ -21,7 +21,7 @@ class MyServiceController extends Controller
             $status = 'Accepted';
         }
 
-        $bids = Bid::with('quote')
+        $bids = Bid::with(['quote','quote.user'])
             ->where('status',$status)
             ->where('provider_id', Auth::id())
             ->where('bid_status', 'Public')
