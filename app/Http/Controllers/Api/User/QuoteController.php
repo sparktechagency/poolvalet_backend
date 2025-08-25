@@ -101,8 +101,6 @@ class QuoteController extends Controller
         ], 201);
     }
 
-
-
     // public function createQuote(Request $request)
     // {
     //     $validator = Validator::make($request->all(), [

@@ -58,6 +58,10 @@ Route::middleware('auth:api')->group(function () {
     // get category lists
     Route::get('/get-category-lists', [CategoryController::class, 'getCategories']);
 
+     // subscriptions
+        Route::get('/get-subscriptions-lists', [SubscriptionController::class, 'getSubscriptions']);
+        Route::get('/get-subscription/{id}', [SubscriptionController::class, 'viewSubscription']);
+
     // ADMIN
     Route::middleware('admin')->prefix('admin')->group(function () {
         // dashboard
@@ -118,7 +122,7 @@ Route::middleware('auth:api')->group(function () {
         Route::get('/current-plan', [BuyPlanController::class, 'currentPlan']);
 
         // connented account
-        Route::post('/create-connected-account', [StripeConnectController::class, 'createConnectedAccount']);
+        Route::get('/create-connected-account', [StripeConnectController::class, 'createConnectedAccount']);
     });
 
     // USER
