@@ -222,7 +222,8 @@ class ChatController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'receiver_id' => 'required|exists:users,id',
-            'photos' => 'required|array|max:4',
+            'message' => 'required|string',
+            'photos' => 'nullable|array|max:4',
             'photos.*' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
 
@@ -251,6 +252,7 @@ class ChatController extends Controller
         $chat = Chat::create([
             'sender_id' => Auth::id(),
             'receiver_id' => $request->receiver_id,
+            'message' => $request->message,
             'files' => json_encode($photoPaths)
         ]);
 
