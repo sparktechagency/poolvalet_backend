@@ -11,6 +11,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Intervention\Image\Image;
 
 class QuoteController extends Controller
 {
@@ -28,10 +29,10 @@ class QuoteController extends Controller
             'expected_budget' => 'nullable|numeric|min:0',
 
             // ✅ Either photos OR video required
-            'photos' => 'required_without:video|array|max:4',
-            'photos.*' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'photos' => 'required_without:video|array|max:5',
+            'photos.*' => 'image|mimes:jpeg,png,jpg,gif,svg|max:10240',
 
-            'video' => 'required_without:photos|file|mimetypes:video/mp4,video/quicktime|max:10240',
+            'video' => 'required_without:photos|file|mimetypes:video/mp4,video/quicktime|max:102400',
         ]);
 
         // Custom validation: Prevent both photos and video

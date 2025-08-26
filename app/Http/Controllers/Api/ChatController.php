@@ -223,9 +223,17 @@ class ChatController extends Controller
         $validator = Validator::make($request->all(), [
             'receiver_id' => 'required|exists:users,id',
             'message' => 'required|string',
-            'photos' => 'nullable|array|max:4',
-            'photos.*' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'photos' => 'nullable|array|max:5',
+            'photos.*' => 'image|mimes:jpeg,png,jpg,gif,svg|max:10240',
+            'video' => 'nullable|file|mimetypes:video/mp4,video/quicktime|max:102400',
         ]);
+
+        // Custom validation: Prevent both photos and video
+        if ($request->hasFile('photos') && $request->hasFile('video')) {
+            $validator->after(function ($validator) {
+                $validator->errors()->add('media', 'You can upload either photos or a video — not both.');
+            });
+        }
 
         if ($validator->fails()) {
             return response()->json([
@@ -249,11 +257,17 @@ class ChatController extends Controller
             }
         }
 
+        // Upload video
+        $videoPath = null;
+        if ($request->hasFile('video')) {
+            $videoPath = '/storage/' . $request->file('video')->store('quotes/videos', 'public');
+        }
+
         $chat = Chat::create([
             'sender_id' => Auth::id(),
             'receiver_id' => $request->receiver_id,
             'message' => $request->message,
-            'files' => json_encode($photoPaths)
+            'files' => $request->photos ? json_encode($photoPaths) : json_encode($videoPath)
         ]);
 
         $chat->files = json_decode($chat->files);
