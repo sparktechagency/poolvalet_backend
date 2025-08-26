@@ -69,7 +69,7 @@ class ChatController extends Controller
 
         $chatUsers = Chat::where('sender_id', $userId)
             ->orWhere('receiver_id', $userId)
-            ->with(['sender:id,full_name,role,avatar,created_at', 'receiver:id,full_name,role,avatar,created_at'])
+            ->with(['sender:id,full_name,role,avatar', 'receiver:id,full_name,role,avatar'])
             ->latest('updated_at')
             ->get()
             ->map(function ($chat) use ($userId) {
@@ -91,6 +91,11 @@ class ChatController extends Controller
                 ->orWhere('receiver_id', Auth::id())
                 ->latest()
                 ->first()->message;
+
+            $chatUser->last_message_date = Chat::where('sender_id', Auth::id())
+                ->orWhere('receiver_id', Auth::id())
+                ->latest()
+                ->first()->created_at;
 
             $chatUser->avatar = $chatUser->avatar
                 ? asset($chatUser->avatar)
