@@ -171,8 +171,9 @@ Route::middleware('auth:api')->group(function () {
         Route::get('/get-messages', [ChatController::class, 'getMessages']);
         Route::get('/chat-lists', [ChatController::class, 'chatLists']);
         Route::get('/unread-count', [ChatController::class, 'unreadCount']);
-        Route::get('/mark-as-read', [ChatController::class, 'markAsRead']);
+        Route::post('/mark-as-read', [ChatController::class, 'markAsRead']);
         Route::delete('/delete-conversation', [ChatController::class, 'deleteConversation']);
         Route::get('/last-message-time', [ChatController::class, 'lastMessageTime']);
+        Route::post('/send-files', [ChatController::class, 'sendFiles']);
     });
 });

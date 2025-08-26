@@ -15,6 +15,7 @@ return new class extends Migration {
             $table->foreignId('sender_id')->constrained('users')->cascadeOnDelete();
             $table->foreignId('receiver_id')->constrained('users')->cascadeOnDelete();
             $table->text('message')->nullable();
+            $table->json('files')->nullable();
             $table->boolean('is_read')->default(false);
             $table->timestamps();
         });

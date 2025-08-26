@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Chat;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -16,6 +17,14 @@ class ChatController extends Controller
             'receiver_id' => 'required|exists:users,id',
             'message' => 'required|string',
         ]);
+
+        // Check if user is trying to send files to themselves
+        if ($request->receiver_id == Auth::id()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Cannot send files to yourself'
+            ], 422);
+        }
 
         $chat = Chat::create([
             'sender_id' => Auth::id(),
@@ -44,6 +53,10 @@ class ChatController extends Controller
                 ->where('receiver_id', Auth::id());
         })->orderBy('created_at')->get();
 
+        foreach ($messages as $item) {
+            $item->files = json_decode($item->files);
+        }
+
         return response()->json([
             'status' => true,
             'data' => $messages,
@@ -56,7 +69,7 @@ class ChatController extends Controller
 
         $chatUsers = Chat::where('sender_id', $userId)
             ->orWhere('receiver_id', $userId)
-            ->with(['sender:id,full_name,role,avatar', 'receiver:id,full_name,role,avatar'])
+            ->with(['sender:id,full_name,role,avatar,created_at', 'receiver:id,full_name,role,avatar,created_at'])
             ->latest('updated_at')
             ->get()
             ->map(function ($chat) use ($userId) {
@@ -137,13 +150,13 @@ class ChatController extends Controller
             'receiver_id' => 'required|exists:users,id',
         ]);
 
-    //    Chat::where('sender_id',Auth::id())->where('receiver_id',$request->receiver_id)->delete();
+        //    Chat::where('sender_id',Auth::id())->where('receiver_id',$request->receiver_id)->delete();
 
 
 
 
         // foreach ($myChats as $myChat) {
-         
+
 
         //     $myChat->message = 'This message was deleted';
         //     $myChat->save();
@@ -166,7 +179,6 @@ class ChatController extends Controller
 
     public function lastMessageTime(Request $request)
     {
-
         $lastMessage = Chat::where(function ($q) {
             $q->where('sender_id', Auth::id())
                 ->orWhere('receiver_id', Auth::id());
@@ -192,6 +204,51 @@ class ChatController extends Controller
             'message' => $isActive
         ]);
 
+    }
+
+    public function sendFiles(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'receiver_id' => 'required|exists:users,id',
+            'photos' => 'required|array|max:4',
+            'photos.*' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => $validator->errors()
+            ], 422);
+        }
+
+        // Check if user is trying to send files to themselves
+        if ($request->receiver_id == Auth::id()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Cannot send files to yourself'
+            ], 422);
+        }
+
+        $photoPaths = [];
+        if ($request->hasFile('photos')) {
+            foreach ($request->file('photos') as $photo) {
+                $photoPaths[] = '/storage/' . $photo->store('quotes/photos', 'public');
+            }
+        }
+
+        $chat = Chat::create([
+            'sender_id' => Auth::id(),
+            'receiver_id' => $request->receiver_id,
+            'files' => json_encode($photoPaths)
+        ]);
+
+        $chat->files = json_decode($chat->files);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Files sent',
+            'data' => $chat,
+        ]);
     }
 
 }
