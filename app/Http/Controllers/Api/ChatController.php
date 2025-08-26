@@ -57,8 +57,15 @@ class ChatController extends Controller
             $item->files = json_decode($item->files);
         }
 
+        $user = User::where('id', $request->receiver_id)->select('id', 'full_name', 'avatar', 'role')->first();
+        $user->avatar = $user->avatar
+            ? asset($user->avatar)
+            : 'https://ui-avatars.com/api/?background=random&name=' . urlencode($user->full_name);
+
+
         return response()->json([
             'status' => true,
+            'receiver_user' => $user,
             'data' => $messages,
         ]);
     }
