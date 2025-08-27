@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Intervention\Image\Image;
 
 class ChatController extends Controller
 {
@@ -222,10 +223,10 @@ class ChatController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'receiver_id' => 'required|exists:users,id',
-            'message' => 'required|string',
+            'message' => 'nullable|string',
             'photos' => 'nullable|array|max:5',
-            'photos.*' => 'image|mimes:jpeg,png,jpg,gif,svg|max:10240',
-            'video' => 'nullable|file|mimetypes:video/mp4,video/quicktime|max:102400',
+            'photos.*' => 'image|mimes:jpeg,png,jpg,gif,svg|max:20480',
+            'video' => 'nullable|file|mimetypes:video/mp4,video/quicktime|max:512000',
         ]);
 
         // Custom validation: Prevent both photos and video

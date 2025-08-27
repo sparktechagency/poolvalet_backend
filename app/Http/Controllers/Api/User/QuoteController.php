@@ -30,9 +30,9 @@ class QuoteController extends Controller
 
             // ✅ Either photos OR video required
             'photos' => 'required_without:video|array|max:5',
-            'photos.*' => 'image|mimes:jpeg,png,jpg,gif,svg|max:10240',
+            'photos.*' => 'image|mimes:jpeg,png,jpg,gif,svg|max:20480',
 
-            'video' => 'required_without:photos|file|mimetypes:video/mp4,video/quicktime|max:102400',
+            'video' => 'required_without:photos|file|mimetypes:video/mp4,video/quicktime|max:512000',
         ]);
 
         // Custom validation: Prevent both photos and video

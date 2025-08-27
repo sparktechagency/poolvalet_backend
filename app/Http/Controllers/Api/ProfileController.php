@@ -22,7 +22,7 @@ class ProfileController extends Controller
             'full_name' => 'nullable|string|max:255',
             'contact_number' => 'nullable|string|max:20',
             'location' => 'nullable|string|max:255',
-            'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048'
+            'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:20480'
         ]);
 
         if ($validator->fails()) {
@@ -85,7 +85,7 @@ class ProfileController extends Controller
             'full_name' => 'nullable|string|max:255',
             'email' => 'nullable|string|max:20',
             'bio' => 'nullable|string|max:255',
-            'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048'
+            'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:20480'
         ]);
 
         if ($validator->fails()) {
