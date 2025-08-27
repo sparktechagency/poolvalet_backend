@@ -83,8 +83,7 @@ class ProfileController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'full_name' => 'nullable|string|max:255',
-            'email' => 'nullable|string|max:20',
-            'bio' => 'nullable|string|max:255',
+            'location' => 'nullable|string|max:255',
             'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:20480'
         ]);
 
@@ -116,8 +115,7 @@ class ProfileController extends Controller
         }
 
         $user->full_name = $request->full_name ?? $user->full_name;
-        $user->email = $request->email ?? $user->email;
-        $user->bio = $request->bio ?? $user->bio;
+        $user->location = $request->location ?? $user->location;
         $user->avatar = $avatarPath;
         $user->save();
 
