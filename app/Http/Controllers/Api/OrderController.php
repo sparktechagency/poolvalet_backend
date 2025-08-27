@@ -10,22 +10,23 @@ use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
 {
-    public function test(Request $request){
+    public function test(Request $request)
+    {
 
 
         $start = Carbon::now()->startOfYear();
-        $end   = Carbon::now()->endOfYear();
+        $end = Carbon::now()->endOfYear();
 
         // DB থেকে grouped ডাটা
         $orders = Order::select(
-                        DB::raw('YEARWEEK(date, 1) as week'),
-                        DB::raw('SUM(price * quantity) as total_sales'),
-                        DB::raw('COUNT(id) as total_orders')
-                    )
-                    ->whereBetween('date', [$start, $end])
-                    ->groupBy('week')
-                    ->get()
-                    ->keyBy('week');
+            DB::raw('YEARWEEK(date, 1) as week'),
+            DB::raw('SUM(price * quantity) as total_sales'),
+            DB::raw('COUNT(id) as total_orders')
+        )
+            ->whereBetween('date', [$start, $end])
+            ->groupBy('week')
+            ->get()
+            ->keyBy('week');
 
         // সব সপ্তাহ জেনারেট করা
         $weeks = [];
@@ -41,12 +42,12 @@ class OrderController extends Controller
 
         return response()->json($weeks);
 
-        $orders = Order::whereBetween('created_at',[Carbon::now(),Carbon::now()->subDays(15)])->get();
+        $orders = Order::whereBetween('created_at', [Carbon::now(), Carbon::now()->subDays(15)])->get();
 
-         return response()->json([
+        return response()->json([
             'status' => true,
             'message' => 'get test',
             'orders' => $orders
-         ]);
+        ]);
     }
 }

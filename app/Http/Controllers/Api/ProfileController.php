@@ -9,8 +9,11 @@ use App\Models\Quote;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+
+use function Illuminate\Log\log;
 
 class ProfileController extends Controller
 {
@@ -84,8 +87,9 @@ class ProfileController extends Controller
         $validator = Validator::make($request->all(), [
             'full_name' => 'nullable|string|max:255',
             'location' => 'nullable|string|max:255',
-            'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:20480'
+            'avatar' => 'nullable'
         ]);
+
 
         if ($validator->fails()) {
             return response()->json([

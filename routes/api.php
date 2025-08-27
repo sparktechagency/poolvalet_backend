@@ -38,10 +38,6 @@ Route::post('/social-login', [AuthController::class, 'socialLogin']);
 // get page
 Route::get('/get-page', [PageController::class, 'getPage']);
 
-
-
-Route::get('/test',[OrderController::class,'test']);
-
 // private route for user
 Route::middleware('auth:api')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);

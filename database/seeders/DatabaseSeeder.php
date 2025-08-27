@@ -35,6 +35,58 @@ class DatabaseSeeder extends Seeder
             'user_id' => $admin->id,
         ]);
 
+        $userOne = User::create([
+            'full_name' => 'User one',
+            'email' => 'user.one@gmail.com',
+            'email_verified_at' => now(),
+            'password' => bcrypt('12345678'),
+            'role' => 'USER',
+            'status' => 'Active',
+        ]);
+
+        Profile::create([
+            'user_id' => $userOne->id,
+        ]);
+
+        $userTwo = User::create([
+            'full_name' => 'User two',
+            'email' => 'user.two@gmail.com',
+            'email_verified_at' => now(),
+            'password' => bcrypt('12345678'),
+            'role' => 'USER',
+            'status' => 'Active',
+        ]);
+
+        Profile::create([
+            'user_id' => $userTwo->id,
+        ]);
+
+        $partnerOne = User::create([
+            'full_name' => 'Provider one',
+            'email' => 'provider.one@gmail.com',
+            'email_verified_at' => now(),
+            'password' => bcrypt('12345678'),
+            'role' => 'PROVIDER',
+            'status' => 'Active',
+        ]);
+
+        Profile::create([
+            'user_id' => $partnerOne->id,
+        ]);
+
+        $partnerTwo = User::create([
+            'full_name' => 'Provider two',
+            'email' => 'provider.two@gmail.com',
+            'email_verified_at' => now(),
+            'password' => bcrypt('12345678'),
+            'role' => 'PROVIDER',
+            'status' => 'Active',
+        ]);
+
+        Profile::create([
+            'user_id' => $partnerTwo->id,
+        ]);
+
         $planList = ['Free plan', 'Basic plan', 'Standard plan', 'Premium plan'];
         $quoteList = [2, 5, 10, 50];
         $priceList = [0.00, 0.99, 1.99, 5.99];

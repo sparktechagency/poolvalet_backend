@@ -62,7 +62,7 @@ class BrowseQuoteController extends Controller
 
     public function viewBrowseQuote(Request $request, $id = null)
     {
-        $quote = Quote::with('user.profile')->where('id', $id)->where('status', 'Pending')->first();
+        $quote = Quote::with('user.profile')->where('id', $id)->first();
 
         if (!$quote) {
             return response()->json([

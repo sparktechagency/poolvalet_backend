@@ -141,7 +141,7 @@ class BuyPlanController extends Controller
             // $current_plan = Plan::where('provider_id', Auth::id())
             //     ->where('status', 'Active')
             //     ->first();
-                
+
             // if ($current_plan) {
             //     return response()->json([
             //         'status' => true,
@@ -230,7 +230,7 @@ class BuyPlanController extends Controller
     public function currentPlan(Request $request)
     {
         // ✅ Check if user already has an Active plan
-        $current_plan = Plan::where('provider_id', Auth::id())
+        $current_plan = Plan::where('provider_id', $request->provider_id ?? Auth::id())
             ->where('status', 'Active')
             ->first();
 
