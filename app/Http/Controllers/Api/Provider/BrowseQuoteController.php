@@ -143,29 +143,40 @@ class BrowseQuoteController extends Controller
             ]);
         }
 
-        $provider_id = Bid::where('quote_id', $request->quote_id)
+        $bid_status = Bid::where('quote_id', $request->quote_id)
             ->where('provider_id', Auth::id())
             ->first()
             ->provider_id ?? null;
 
-        if ($provider_id == Auth::id()) {
+        if ($bid_status == 'Public') {
             return response()->json([
                 'status' => false,
-                'message' => 'You alredy accepted budget in this quote'
+                'message' => 'You already bid in this quote'
             ]);
         }
 
-        $bid = Bid::create([
-            'quote_id' => $quote->id,
-            'provider_id' => Auth::id(),
-            'price_offered' => $quote->expected_budget,
-            'quote_outline' => "The homeowner's expected budget was directly accepted by the provider.",
-        ]);
+        $isbid = Bid::where('provider_id', Auth::id())->first();
+
+        if ($isbid) {
+            $isbid->quote_id = $quote->id;
+            $isbid->provider_id = Auth::id();
+            $isbid->price_offered = $quote->expected_budget;
+            $isbid->quote_outline = "The homeowner's expected budget was directly accepted by the provider.";
+            $isbid->save();
+
+        } else {
+            $bid = Bid::create([
+                'quote_id' => $quote->id,
+                'provider_id' => Auth::id(),
+                'price_offered' => $quote->expected_budget,
+                'quote_outline' => "The homeowner's expected budget was directly accepted by the provider."
+            ]);
+        }
 
         return response()->json([
             'status' => true,
             'message' => 'Budget accepted successfully',
-            'data' => $bid
+            'data' => $isbid ? $isbid : $bid
         ]);
     }
 
@@ -212,29 +223,42 @@ class BrowseQuoteController extends Controller
             ]);
         }
 
-        $provider_id = Bid::where('quote_id', $request->quote_id)
+        $bid_status = Bid::where('quote_id', $request->quote_id)
             ->where('provider_id', Auth::id())
             ->first()
-            ->provider_id ?? null;
+            ->bid_status ?? null;
 
-        if ($provider_id == Auth::id()) {
+        if ($bid_status == 'Public') {
             return response()->json([
                 'status' => false,
                 'message' => 'You already bid in this quote'
             ]);
         }
 
-        $bid = Bid::create([
-            'quote_id' => $quote->id,
-            'provider_id' => Auth::id(),
-            'price_offered' => $request->price_offered,
-            'quote_outline' => $request->quote_outline
-        ]);
+        $isbid = Bid::where('provider_id', Auth::id())->first();
+
+        if ($isbid) {
+            $isbid->quote_id = $quote->id;
+            $isbid->provider_id = Auth::id();
+            $isbid->price_offered = $request->price_offered;
+            $isbid->quote_outline = $request->quote_outline;
+            $isbid->save();
+
+        } else {
+            $bid = Bid::create([
+                'quote_id' => $quote->id,
+                'provider_id' => Auth::id(),
+                'price_offered' => $request->price_offered,
+                'quote_outline' => $request->quote_outline
+            ]);
+        }
+
+
 
         return response()->json([
             'status' => true,
             'message' => 'Bid applied successfully',
-            'data' => $bid
+            'data' => $isbid ? $isbid : $bid
         ]);
     }
 
@@ -375,6 +399,7 @@ class BrowseQuoteController extends Controller
             'status' => true,
             'message' => 'Bidding list fetched successfully.',
             'your_bid' => $yourBid ? 'Your asking bid price: $' . $yourBid : 'You have not placed any bid yet.',
+            'your_bid_value' => $yourBid,
             'data' => $bidding_lists
         ]);
     }
