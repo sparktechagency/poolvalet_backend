@@ -119,6 +119,9 @@ Route::middleware('auth:api')->group(function () {
 
         // connented account
         Route::get('/create-connected-account', [StripeConnectController::class, 'createConnectedAccount']);
+
+        // get provider rating 
+        Route::get('/get-provider-rating',[ReviewController::class,'getProviderRating']);
     });
 
     // USER

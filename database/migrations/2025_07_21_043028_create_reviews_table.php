@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete(); 
             $table->unsignedInteger('provider_id'); 
+            $table->unsignedInteger('quote_id')->nullable(); 
             $table->unsignedInteger('rating');
             $table->text('compliment')->nullable();
             $table->timestamps();

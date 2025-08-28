@@ -15,6 +15,7 @@ class ReviewController extends Controller
 
         $validator = Validator::make($request->all(), [
             'provider_id' => 'required|exists:users,id',
+            'quote_id' => 'nullable',
             'rating' => 'required|integer|min:1|max:5',
             'compliment' => 'nullable|string',
         ]);
@@ -30,6 +31,7 @@ class ReviewController extends Controller
         $review = Review::create([
             'user_id' => Auth::id(),
             'provider_id' => $request->provider_id,
+            'quote_id' => $request->quote_id,
             'rating' => $request->rating,
             'compliment' => $request->compliment ?? null,
         ]);
@@ -67,6 +69,16 @@ class ReviewController extends Controller
             'status' => true,
             'message' => 'Review loaded successfully.',
             'data' => $review,
+        ]);
+    }
+
+    public function getProviderRating(Request $request){
+        $provider_review = Review::where('quote_id',$request->quote_id)->first();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Get provider review.',
+            'data' => $provider_review,
         ]);
     }
 
