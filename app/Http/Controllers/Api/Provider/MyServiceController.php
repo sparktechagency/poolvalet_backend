@@ -96,7 +96,7 @@ class MyServiceController extends Controller
             $quote->save();
 
             $profile = Profile::where('user_id', Auth::id())->first();
-            $profile->increment('completed_service');
+            $profile->increment('completed_services');
         }
 
 

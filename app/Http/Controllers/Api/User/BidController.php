@@ -55,7 +55,7 @@ class BidController extends Controller
             $status = 'Accepted';
         }
 
-        $bids = Bid::where('status', $status)
+        $bids = Bid::with('quote')->where('status', $status)
             ->where('bid_status', 'Public')
             ->paginate($request->per_page ?? 10);
 
