@@ -92,29 +92,40 @@ class ChatController extends Controller
             })
             ->values();
 
-
-
         foreach ($chatUsers as $chatUser) {
-            $chatUser->last_message = Chat::where('sender_id', Auth::id())
-                ->orWhere('receiver_id', Auth::id())
+            // Get the last message for the specific user
+            $lastMessage = Chat::where(function ($query) use ($chatUser) {
+                $query->where('sender_id', Auth::id())
+                    ->where('receiver_id', $chatUser->id);
+            })
+                ->orWhere(function ($query) use ($chatUser) {
+                    $query->where('sender_id', $chatUser->id)
+                        ->where('receiver_id', Auth::id());
+                })
                 ->latest()
-                ->first()->message;
+                ->first();
 
-            $chatUser->last_message_date = Chat::where('sender_id', Auth::id())
-                ->orWhere('receiver_id', Auth::id())
-                ->latest()
-                ->first()->created_at;
+            if ($lastMessage) {
+                $chatUser->last_message = $lastMessage->message;
+                $chatUser->last_message_date = $lastMessage->created_at;
+            }
 
             $chatUser->avatar = $chatUser->avatar
                 ? asset($chatUser->avatar)
                 : 'https://ui-avatars.com/api/?background=random&name=' . urlencode($chatUser->full_name);
-        }
 
-        foreach ($chatUsers as $chatUser) {
+            // $chatUser->unreadCount = Chat::where('receiver_id', Auth::id())->where('sender_id',5)
+            //     ->where('is_read', false)
+            //     ->count();
+
+            // ✅ Count unread messages **from this chat user only**
             $chatUser->unreadCount = Chat::where('receiver_id', Auth::id())
+                ->where('sender_id', $chatUser->id)
                 ->where('is_read', false)
                 ->count();
         }
+
+
 
         return response()->json([
             'status' => true,

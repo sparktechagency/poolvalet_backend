@@ -87,7 +87,7 @@ class ProfileController extends Controller
         $validator = Validator::make($request->all(), [
             'full_name' => 'nullable|string|max:255',
             'location' => 'nullable|string|max:255',
-            'avatar' => 'nullable'
+            'avatar' => 'required'
         ]);
 
 

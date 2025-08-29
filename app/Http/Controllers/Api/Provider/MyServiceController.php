@@ -124,15 +124,20 @@ class MyServiceController extends Controller
 
     public function myEarnings(Request $request)
     {
-        $mark_as_complete_quotes = Bid::where('status', 'Accepted')->where('provider_id', Auth::id())->pluck('quote_id')->toArray();
+        $mark_as_complete_quotes = Bid::where('status', 'Completed')->where('provider_id', Auth::id())->pluck('quote_id')->toArray();
 
-        $my_earnings = Quote::whereIn('id', $mark_as_complete_quotes)->where('status', 'Completed')->get();
+        $my_earnings = Quote::with('user')->whereIn('id', $mark_as_complete_quotes)->where('status', 'Completed')->get();
 
         if (!$my_earnings) {
             return response()->json([
                 'status' => false,
                 'message' => 'You have no erarnings'
             ]);
+        }
+
+        foreach ($my_earnings as $item) {
+            $item->photos = json_decode($item->photos);
+            $item->price_offered = Bid::where('quote_id',$item->id)->first()->price_offered;
         }
 
         return response()->json([
