@@ -22,8 +22,8 @@ class SubscriptionController extends Controller
     public function updateSubscription(Request $request, $id = null)
     {
         $request->validate([
-            'number_of_quotes' => 'nullable|integer|min:0',
-            'price' => 'nullable|integer|min:0',
+            'number_of_quotes' => 'nullable|min:0',
+            'price' => 'nullable|min:0',
         ]);
 
         $subscription = Subscription::where('id', $id)->first();
