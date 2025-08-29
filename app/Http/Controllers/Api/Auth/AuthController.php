@@ -287,7 +287,8 @@ class AuthController extends Controller
         $validator = Validator::make($request->all(), [
             'email' => 'required|string|email|max:255',
             'password' => 'required|string|min:8',
-            'remember_me' => 'sometimes|boolean'
+            'remember_me' => 'sometimes|boolean',
+            'role' => 'required|string'
         ]);
 
         // Validation Errors
@@ -314,6 +315,13 @@ class AuthController extends Controller
             return response()->json([
                 'status' => false,
                 'message' => 'Your account is inactive. Please contact support.',
+            ], 403);
+        }
+
+        if ($user->role != $request->role) {
+            return response()->json([
+                'status' => false,
+                'message' => $user->role == 'USER' ? 'You are not porvider' : 'You are not user',
             ], 403);
         }
 

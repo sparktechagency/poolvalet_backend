@@ -87,7 +87,7 @@ class BuyPlanController extends Controller
 
         // ✅ Validate input
         $validator = Validator::make($request->all(), [
-            'amount' => 'required|numeric|min:1',
+            'amount' => 'required|numeric',
             'payment_method_types' => 'required|string',
         ]);
 

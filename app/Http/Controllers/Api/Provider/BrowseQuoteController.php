@@ -21,7 +21,14 @@ class BrowseQuoteController extends Controller
     {
         $category_names = Category::pluck('name')->toArray();
 
+        $makeFinalQuote = Bid::where('provider_id', Auth::id())->pluck('quote_id');
+
         $query = Quote::query();
+
+        if ($makeFinalQuote) {
+            $query->whereNotIn('id', $makeFinalQuote);
+
+        }
 
         // ✅ Optional category filter
         if ($request->has('category') && in_array($request->category, $category_names)) {
@@ -155,7 +162,7 @@ class BrowseQuoteController extends Controller
             ]);
         }
 
-        $isbid = Bid::where('provider_id', Auth::id())->first();
+        $isbid = Bid::where('provider_id', Auth::id())->where('quote_id', $request->quote_id)->first();
 
         if ($isbid) {
             $isbid->quote_id = $quote->id;
@@ -235,7 +242,7 @@ class BrowseQuoteController extends Controller
             ]);
         }
 
-        $isbid = Bid::where('provider_id', Auth::id())->first();
+        $isbid = Bid::where('provider_id', Auth::id())->where('quote_id', $request->quote_id)->first();
 
         if ($isbid) {
             $isbid->quote_id = $quote->id;
