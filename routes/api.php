@@ -86,7 +86,7 @@ Route::middleware('auth:api')->group(function () {
 
         // subscriptions
         Route::get('/get-subscriptions', [SubscriptionController::class, 'getSubscriptions']);
-        Route::put('/update-subscription/{id}', [SubscriptionController::class, 'updateSubscription']);
+        Route::patch('/update-subscription/{id}', [SubscriptionController::class, 'updateSubscription']);
         Route::get('/view-subscription/{id}', [SubscriptionController::class, 'viewSubscription']);
 
         // settings

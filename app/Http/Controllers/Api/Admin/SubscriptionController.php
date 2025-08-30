@@ -28,12 +28,11 @@ class SubscriptionController extends Controller
 
         $subscription = Subscription::where('id', $id)->first();
 
-        if ($subscription) {
-            $subscription->update([
-                'number_of_quotes' => $request->number_of_quotes,
-                'price' => $request->price,
-            ]);
+        $subscription->number_of_quotes = $request->number_of_quotes ?? $subscription->number_of_quotes;
+        if($id != 1){
+            $subscription->price = $request->price ?? $subscription->price;
         }
+        $subscription->save();
 
         return response()->json([
             'status' => true,
