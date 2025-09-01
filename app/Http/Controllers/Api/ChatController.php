@@ -119,13 +119,13 @@ class ChatController extends Controller
             //     ->count();
 
             // ✅ Count unread messages **from this chat user only**
-            $chatUser->unreadCount = Chat::where('receiver_id', Auth::id())
-                ->where('sender_id', $chatUser->id)
-                ->where('is_read', false)
-                ->count();
+    $chatUser->unreadCount = Chat::where('receiver_id', Auth::id())
+        ->where('sender_id', $chatUser->id)
+        ->where('is_read', false)
+        ->count();
         }
 
-
+        
 
         return response()->json([
             'status' => true,
@@ -155,6 +155,7 @@ class ChatController extends Controller
 
         $users = Chat::where('receiver_id', Auth::id())
             ->where('is_read', false)
+            ->where('sender_id',$request->sender_id)
             ->get();
 
         foreach ($users as $user) {

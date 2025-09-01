@@ -161,8 +161,8 @@ Route::middleware('auth:api')->group(function () {
 
     Route::middleware('user.provider')->group(function () {
         // profile for user/
-        Route::patch('/edit-account', [ProfileController::class, 'editAccount']);
-        Route::patch('/edit-address', [ProfileController::class, 'editAddress']);
+        Route::post('/edit-account', [ProfileController::class, 'editAccount']);
+        Route::post('/edit-address', [ProfileController::class, 'editAddress']);
         Route::get('/order-info', [ProfileController::class, 'orderInfo']);
 
         // chat
