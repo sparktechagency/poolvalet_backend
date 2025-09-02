@@ -19,8 +19,6 @@ class ProfileController extends Controller
 {
     public function updateProfile(Request $request)
     {
-
-        // ✅ Validation Rules
         $validator = Validator::make($request->all(), [
             'full_name' => 'nullable|string|max:255',
             'contact_number' => 'nullable|string|max:20',
@@ -37,33 +35,21 @@ class ProfileController extends Controller
 
         $user = User::where('id', Auth::id())->first();
 
-        // ✅ Avatar Upload (if provided)
         if ($request->hasFile('avatar')) {
 
             $relativePath = parse_url($user->avatar, PHP_URL_PATH);
 
-            // $paths = array_map(fn($url) => parse_url($url, PHP_URL_PATH), $urls);
-            // foreach ($paths as $path) {
-            //     Storage::disk('public')->delete(str_replace('/storage/', '', $path));
-            // }
-            // $relativePath = str_replace(url('/'), '', $user->avatar);
-
-            // 🗑 Delete old avatar
             if ($relativePath && Storage::disk('public')->exists(str_replace('/storage/', '', $relativePath))) {
                 Storage::disk('public')->delete(str_replace('/storage/', '', $relativePath));
             }
 
-            // ✅ Upload new avatar
             $file = $request->file('avatar');
             $filename = time() . '_' . $file->getClientOriginalName();
             $filepath = $file->storeAs('avatars', $filename, 'public');
-
             $avatarPath = '/storage/' . $filepath;
         } else {
             $avatarPath = $user->avatar;
         }
-
-        // ✅ Update user fields safely
 
         $user->full_name = $request->full_name ?? $user->full_name;
         $user->contact_number = $request->contact_number ?? $user->contact_number;
@@ -87,9 +73,8 @@ class ProfileController extends Controller
         $validator = Validator::make($request->all(), [
             'full_name' => 'nullable|string|max:255',
             'location' => 'nullable|string|max:255',
-            'avatar' => 'required'
+            'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:20480'
         ]);
-
 
         if ($validator->fails()) {
             return response()->json([
@@ -100,9 +85,7 @@ class ProfileController extends Controller
 
         $user = User::where('id', Auth::id())->first();
 
-        // ✅ Avatar Upload (if provided)
         if ($request->hasFile('avatar')) {
-
             $relativePath = parse_url($user->avatar, PHP_URL_PATH);
 
             if ($relativePath && Storage::disk('public')->exists(str_replace('/storage/', '', $relativePath))) {
@@ -126,7 +109,6 @@ class ProfileController extends Controller
         $user->avatar = $user->avatar
             ? asset($user->avatar)
             : 'https://ui-avatars.com/api/?background=random&name=' . urlencode($user->full_name);
-
 
         return response()->json([
             'status' => true,

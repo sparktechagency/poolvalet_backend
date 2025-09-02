@@ -288,7 +288,7 @@ class AuthController extends Controller
             'email' => 'required|string|email|max:255',
             'password' => 'required|string|min:8',
             'remember_me' => 'sometimes|boolean',
-            'role' => 'required|string'
+            'role' => 'nullable'
         ]);
 
         // Validation Errors
@@ -321,7 +321,7 @@ class AuthController extends Controller
         if ($user->role != $request->role) {
             return response()->json([
                 'status' => false,
-                'message' => $user->role == 'USER' ? 'You are not porvider' : 'You are not user',
+                'message' => 'Your are not '.$request->role,
             ], 403);
         }
 
