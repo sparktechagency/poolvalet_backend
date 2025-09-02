@@ -43,6 +43,7 @@ class CategoryController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
+            'description' => 'nullable|string|max:255',
             'icon' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
 
@@ -62,6 +63,7 @@ class CategoryController extends Controller
 
         $category = Category::create([
             'name' => $request->name,
+            'description' => $request->description,
             'icon' => $avatarPath,
         ]);
 
