@@ -139,6 +139,7 @@ class AuthController extends Controller
             'full_name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email',
             'password' => 'required|string|min:8|confirmed',
+            'without_otp' => 'nullable|string'
         ]);
 
         // check validation
@@ -147,6 +148,33 @@ class AuthController extends Controller
                 'status' => false,
                 'message' => $validator->errors()
             ], 422);
+        }
+
+        if ($request->without_otp == 'true') {
+            $user = User::create([
+                'role' => $request->role == 1 ? 'USER' : 'PROVIDER',
+                'full_name' => ucfirst($request->full_name),
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
+                'status' => 'Active'
+            ]);
+
+            Profile::create([
+                'user_id' => $user->id,
+            ]);
+
+            // custom token time
+            $tokenExpiry = Carbon::now()->addDays(7);
+            $customClaims = ['exp' => $tokenExpiry->timestamp];
+            $token = JWTAuth::customClaims($customClaims)->fromUser($user);
+
+            return response()->json([
+                'status' => true,
+                'message' => $user->role.' Register successfully.',
+                'access_token' => $token,
+                'token_type' => 'bearer',
+                'expires_in' => $tokenExpiry,
+            ], 200);
         }
 
         $user = User::create([
@@ -321,7 +349,7 @@ class AuthController extends Controller
         if ($user->role != $request->role) {
             return response()->json([
                 'status' => false,
-                'message' => 'Your are not '.$request->role,
+                'message' => 'Your are not ' . $request->role,
             ], 403);
         }
 
