@@ -37,6 +37,8 @@ Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
 Route::post('/social-login', [AuthController::class, 'socialLogin']);
 // get page
 Route::get('/get-page', [PageController::class, 'getPage']);
+// get category lists
+Route::get('/get-category-web', [CategoryController::class, 'getCategories']);
 
 // private route for user
 Route::middleware('auth:api')->group(function () {
@@ -45,7 +47,7 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/get-profile', [AuthController::class, 'getProfile']);
     Route::post('/update-password', [AuthController::class, 'updatePassword']);
 
-     // notification
+    // notification
     Route::get('/get-notifications', [NotificationController::class, 'getNotifications']);
     Route::patch('/read', [NotificationController::class, 'read']);
     Route::patch('/read-all', [NotificationController::class, 'readAll']);
@@ -54,16 +56,16 @@ Route::middleware('auth:api')->group(function () {
     // get category lists
     Route::get('/get-category-lists', [CategoryController::class, 'getCategories']);
 
-     // subscriptions
-        Route::get('/get-subscriptions-lists', [SubscriptionController::class, 'getSubscriptions']);
-        Route::get('/get-subscription/{id}', [SubscriptionController::class, 'viewSubscription']);
+    // subscriptions
+    Route::get('/get-subscriptions-lists', [SubscriptionController::class, 'getSubscriptions']);
+    Route::get('/get-subscription/{id}', [SubscriptionController::class, 'viewSubscription']);
 
     // ADMIN
     Route::middleware('admin')->prefix('admin')->group(function () {
         // dashboard
-        Route::get('get-data',[DashboardController::class,'getData']);
-        Route::get('get-chart',[DashboardController::class,'getChart']);
-        
+        Route::get('get-data', [DashboardController::class, 'getData']);
+        Route::get('get-chart', [DashboardController::class, 'getChart']);
+
         // users manage
         Route::get('/get-users', [UserManageController::class, 'getUsers']);
         Route::delete('/delete-user/{id?}', [UserManageController::class, 'deleteUser']);
@@ -121,7 +123,7 @@ Route::middleware('auth:api')->group(function () {
         Route::get('/create-connected-account', [StripeConnectController::class, 'createConnectedAccount']);
 
         // get provider rating 
-        Route::get('/get-provider-rating',[ReviewController::class,'getProviderRating']);
+        Route::get('/get-provider-rating', [ReviewController::class, 'getProviderRating']);
     });
 
     // USER
