@@ -67,7 +67,6 @@ class ProfileController extends Controller
             'data' => $user
         ]);
     }
-
     public function editAccount(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -116,10 +115,8 @@ class ProfileController extends Controller
             'data' => $user
         ]);
     }
-
     public function editAddress(Request $request)
     {
-
         $validator = Validator::make($request->all(), [
             'display_name' => 'nullable|string|max:255',
             'user_name' => 'nullable|string|max:255',
@@ -128,7 +125,6 @@ class ProfileController extends Controller
             'state' => 'nullable|string|max:255',
             'zip_code' => 'nullable|string|max:5',
             'country' => 'nullable|string|max:255',
-
         ]);
 
         if ($validator->fails()) {
@@ -150,21 +146,16 @@ class ProfileController extends Controller
         $user->country = $request->country ?? $user->country;
         $user->save();
 
-
         return response()->json([
             'status' => true,
             'message' => 'Profile updated successfully.',
             'data' => $user
         ]);
     }
-
     public function orderInfo(Request $request)
     {
-
         $total_order_user = Quote::where('user_id', Auth::id())->count();
-
         $total_order_provider = Bid::where('provider_id', Auth::id())->where('bid_status', 'public')->count();
-
         $completed_order = Profile::where('user_id', Auth::id())->first()->completed_services;
 
         return response()->json([

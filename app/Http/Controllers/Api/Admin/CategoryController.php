@@ -10,35 +10,6 @@ use Illuminate\Support\Facades\Storage;
 
 class CategoryController extends Controller
 {
-    // public function addCategory(Request $request)
-    // {
-    //     // validation roles
-    //     $validator = Validator::make($request->all(), [
-    //         'name' => 'required|string|max:255',
-    //         'icon' => 'required|string|max:255',
-    //     ]);
-
-    //     // check validation
-    //     if ($validator->fails()) {
-    //         return response()->json([
-    //             'status' => false,
-    //             'message' => $validator->errors()
-    //         ], 422);
-    //     }
-
-    //     $category = Category::create([
-    //         'name' => $request->name,
-    //         'icon' => $request->icon,
-    //     ]);
-
-    //     return response()->json([
-    //         'status' => true,
-    //         'message' => 'Category added successfully.',
-    //         'category' => $category,
-    //     ]);
-    // }
-
-
     public function addCategory(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -75,7 +46,6 @@ class CategoryController extends Controller
             'category' => $category,
         ]);
     }
-
     public function getCategories($id = null)
     {
         $categories = Category::all();
@@ -86,10 +56,8 @@ class CategoryController extends Controller
             'data' => $categories
         ]);
     }
-
     public function viewCategory($id = null)
     {
-
         $category = Category::find($id);
 
         if (!$category) {
@@ -105,42 +73,6 @@ class CategoryController extends Controller
             'data' => $category
         ]);
     }
-
-    // public function editCategory(Request $request, $id)
-    // {
-    //     $category = Category::find($id);
-
-    //     if (!$category) {
-    //         return response()->json([
-    //             'status' => false,
-    //             'message' => 'Category not found.'
-    //         ], 404);
-    //     }
-
-    //     // validation roles
-    //     $validator = Validator::make($request->all(), [
-    //         'name' => 'sometimes|string|max:255',
-    //         'icon' => 'sometimes|string|max:255',
-    //     ]);
-
-    //     // check validation
-    //     if ($validator->fails()) {
-    //         return response()->json([
-    //             'status' => false,
-    //             'message' => $validator->errors()
-    //         ], 422);
-    //     }
-
-    //     $category->update($request->only(['name', 'icon']));
-
-    //     return response()->json([
-    //         'status' => true,
-    //         'message' => 'Category updated successfully.',
-    //         'category' => $category,
-    //     ]);
-    // }
-
-
     public function editCategory(Request $request, $id)
     {
         $category = Category::find($id);
@@ -189,7 +121,6 @@ class CategoryController extends Controller
             'category' => $category,
         ]);
     }
-
     public function deleteCategory($id)
     {
         $category = Category::find($id);
@@ -208,5 +139,4 @@ class CategoryController extends Controller
             'message' => 'Category deleted successfully.'
         ]);
     }
-
 }

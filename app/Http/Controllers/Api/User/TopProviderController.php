@@ -24,12 +24,8 @@ class TopProviderController extends Controller
             ->take($request->limit ?? 5)
             ->get();
 
-        // Optional avatar fallback
         foreach ($topProviders as $item) {
-
-            // Format rating to 1 decimal place (like 4.0)
             $item->average_rating = number_format($item->average_rating, 1);
-
             $item->provider->avatar = $item->provider->avatar
                 ? asset($item->provider->avatar)
                 : 'https://ui-avatars.com/api/?background=random&name=' . urlencode($item->provider->full_name);
@@ -41,18 +37,14 @@ class TopProviderController extends Controller
             'data' => $topProviders
         ]);
     }
-
-
     public function viewProvider($id = null)
     {
-        // Fetch provider with profile
         $provider = User::with('profile')
             ->where('id', $id)
             ->where('role', 'PROVIDER')
             ->select('id', 'full_name', 'email', 'avatar', 'role')
             ->first();
 
-        // Not found
         if (!$provider) {
             return response()->json([
                 'status' => false,
@@ -60,12 +52,10 @@ class TopProviderController extends Controller
             ], 404);
         }
 
-        // Avatar
         $provider->avatar = $provider->avatar
             ? asset($provider->avatar)
             : 'https://ui-avatars.com/api/?background=random&name=' . urlencode($provider->full_name);
 
-        // Rating & review count
         $ratingStats = Review::where('provider_id', $id)
             ->selectRaw('AVG(rating) as average_rating, COUNT(*) as total_reviews')
             ->first();
@@ -75,11 +65,8 @@ class TopProviderController extends Controller
             : 0;
 
         $provider->total_reviews = $ratingStats->total_reviews ?? 0;
-
-
         $accepted = $provider->profile->completed_services;
         $cancelled = $provider->profile->canceled_order;
-
         $total = $accepted + $cancelled;
 
         if ($total > 0) {
@@ -104,6 +91,4 @@ class TopProviderController extends Controller
             'reviews' => $reviews
         ]);
     }
-
-
 }

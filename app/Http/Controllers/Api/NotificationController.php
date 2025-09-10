@@ -15,7 +15,6 @@ class NotificationController extends Controller
         $user = Auth::user();
         $notifications = $user->notifications()->latest()->paginate($request->per_page ?? 10);
 
-
         return response()->json([
             'status' => true,
             'message' => 'Latest notifications',
@@ -47,7 +46,9 @@ class NotificationController extends Controller
     public function readAll(Request $request)
     {
         $ids = Auth::user()->unreadNotifications()->pluck('id')->toArray();
+
         DatabaseNotification::whereIn('id', $ids)->update(['read_at' => now()]);
+        
         return response()->json([
             'status' => true,
             'message' => 'All Notifications are readed'

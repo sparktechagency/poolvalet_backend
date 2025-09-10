@@ -39,7 +39,6 @@ class ChatController extends Controller
             'data' => $chat,
         ]);
     }
-
     public function getMessages(Request $request)
     {
         $request->validate([
@@ -70,7 +69,6 @@ class ChatController extends Controller
             'data' => $messages,
         ]);
     }
-
     public function chatLists(Request $request)
     {
         $userId = Auth::id();
@@ -133,7 +131,6 @@ class ChatController extends Controller
             'data' => $chatUsers
         ]);
     }
-
     public function unreadCount(Request $request)
     {
         $count = Chat::where('receiver_id', Auth::id())
@@ -145,7 +142,6 @@ class ChatController extends Controller
             'unread' => $count,
         ]);
     }
-
     public function markAsRead(Request $request)
     {
         // $request->validate([
@@ -168,7 +164,6 @@ class ChatController extends Controller
             'message' => 'Messages marked as read',
         ]);
     }
-
     public function deleteConversation(Request $request)
     {
         $request->validate([
@@ -201,7 +196,6 @@ class ChatController extends Controller
             'message' => 'Conversation deleted',
         ]);
     }
-
     public function lastMessageTime(Request $request)
     {
         $lastMessage = Chat::where(function ($q) {
@@ -230,7 +224,6 @@ class ChatController extends Controller
         ]);
 
     }
-
     public function sendFiles(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -291,5 +284,4 @@ class ChatController extends Controller
             'data' => $chat,
         ]);
     }
-
 }

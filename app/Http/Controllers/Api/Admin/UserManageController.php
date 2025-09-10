@@ -17,24 +17,17 @@ class UserManageController extends Controller
     {
         $perPage = $request->get('per_page', 10);
         $search = $request->get('search');
-
-        // ✅ Query builder শুরু
         $query = User::where('role', '!=', 'ADMIN')->select('id', 'full_name', 'email', 'avatar', 'role');
 
-        // ✅ Search functionality: name বা email
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('full_name', 'like', "%{$search}%")
                     ->orWhere('email', 'like', "%{$search}%");
             });
         }
-
         $users = $query->latest()->paginate($perPage);
-
-        // ✅ Format each user
         foreach ($users as $user) {
             $user->role = $user->role === 'USER' ? 'HOME OWNER' : 'PROVIDER';
-
             $user->avatar = $user->avatar
                 ? asset($user->avatar)
                 : 'https://ui-avatars.com/api/?background=random&name=' . urlencode($user->full_name);
@@ -46,7 +39,6 @@ class UserManageController extends Controller
             'users' => $users
         ]);
     }
-
     public function deleteUser($id = null)
     {
         $user = User::where('id', $id)->where('role', '!=', 'ADMIN')->first();
@@ -68,17 +60,14 @@ class UserManageController extends Controller
             'message' => 'User deleted successfully.'
         ]);
     }
-
     public function viewUser($id = null)
     {
-        // User fetch with profile relationship, excluding admin role
         $user = User::with('profile')
             ->where('id', $id)
             ->where('role', '!=', 'ADMIN')
             ->select('id', 'full_name', 'email', 'avatar', 'role')
             ->first();
 
-        // User not found
         if (!$user) {
             return response()->json([
                 'status' => false,
@@ -90,7 +79,6 @@ class UserManageController extends Controller
             ? asset($user->avatar)
             : 'https://ui-avatars.com/api/?background=random&name=' . urlencode($user->full_name);
 
-        // Set readable role name
         $user->role = match ($user->role) {
             'USER' => 'HOME OWNER',
             'PROVIDER' => 'PROVIDER',
@@ -120,56 +108,6 @@ class UserManageController extends Controller
             'transactions' => $transactions
         ]);
     }
-
-    // public function activitiesChart(Request $request)
-    // {
-    //     $total_earning = Transaction::selectRaw('
-    //         DATE(created_at) as date,
-    //         COUNT(*) as total_transactions,
-    //         SUM(amount) as total_amount
-    //     ')
-    //         ->where('provider_id', $request->provider_id)
-    //         ->where('created_at', '>=', Carbon::now()->subMonths($request->filter))
-    //         ->groupByRaw('DATE(created_at)')
-    //         ->get()
-    //         ->map(function ($item) {
-    //             return [
-    //                 'date' => $item->date,
-    //                 'day' => Carbon::parse($item['date'])->format('D'),
-    //                 'total_transactions' => (int) $item->total_transactions >= 1000
-    //                     ? number_format((int) $item->total_transactions / 1000) . 'k'
-    //                     : number_format((int) $item->total_transactions),
-    //                 'total_amount' => (float) $item->total_amount >= 1000
-    //                     ? number_format((float) $item->total_amount / 1000, 2) . 'k'
-    //                     : number_format((float) $item->total_amount, 2),
-    //             ];
-    //         });
-
-    //     $completed_service = Bid::selectRaw('DATE(created_at) as date, COUNT(*) as count')
-    //         ->where('provider_id', $request->provider_id)
-    //         ->where('created_at', '>=', Carbon::now()->subMonths($request->filter))
-    //         ->groupBy('date')
-    //         ->orderBy('date')
-    //         ->get()
-    //         ->map(function ($item) {
-    //             return [
-    //                 'date' => $item->date,
-    //                 'count' => $item->count >= 1000
-    //                     ? number_format($item->count / 1000) . 'k'
-    //                     : number_format($item->count),
-    //                 'day' => Carbon::parse($item['date'])->format('D')
-    //             ];
-    //         });
-
-    //     return response()->json([
-    //         'status' => true,
-    //         'message' => 'Activities chart data for ' . $request->filter . ' days',
-    //         'completed_service' => $completed_service,
-    //         'total_earning' => $total_earning,
-    //     ]);
-
-    // }
-
     public function activitiesChart(Request $request)
     {
         $startDate = Carbon::now()->subDays(6)->startOfDay();

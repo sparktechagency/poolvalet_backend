@@ -18,7 +18,6 @@ class SubscriptionController extends Controller
             'subscriptions' => $subscriptions
         ]);
     }
-
     public function updateSubscription(Request $request, $id = null)
     {
         $request->validate([
@@ -40,7 +39,6 @@ class SubscriptionController extends Controller
             'subscription' => $subscription
         ]);
     }
-
     public function viewSubscription($id = null)
     {
         $subscription = Subscription::find($id);
@@ -56,5 +54,4 @@ class SubscriptionController extends Controller
             'data' => $subscription
         ]);
     }
-
 }

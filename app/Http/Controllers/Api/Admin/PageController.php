@@ -12,21 +12,17 @@ class PageController extends Controller
 
     public function createPage(Request $request)
     {
-
-        // validation roles
         $validator = Validator::make($request->all(), [
             'page_type' => 'required|string',
             'content' => 'required'
         ]);
 
-        // check validation
         if ($validator->fails()) {
             return response()->json([
                 'status' => false,
                 'message' => $validator->errors()
             ], 422);
         }
-
 
         $page = Page::where('page_type', $request->page_type)->first();
 
@@ -46,12 +42,8 @@ class PageController extends Controller
             'data' => $page,
         ]);
     }
-
-
     public function getPage(Request $request)
     {
-
-        // ✅ Validation Rules
         $validator = Validator::make($request->all(), [
             'page_type' => 'required|string|max:255',
         ]);
@@ -71,7 +63,6 @@ class PageController extends Controller
                 'message' => $request->page_type . ' page not found',
             ], 404);
         }
-
 
         return response()->json([
             'status' => true,

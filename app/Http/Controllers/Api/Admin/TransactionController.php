@@ -15,11 +15,9 @@ class TransactionController extends Controller
     public function getTransactions(Request $request)
     {
         $last_days = $request->filter + $request->filter;
-
         $lastStartDate = Carbon::now()->subDays($last_days ?? 14);
         $startDate = Carbon::now()->subDays($request->filter ?? 7);
         $endDate = Carbon::now();
-
 
         // transactions
         $transactions = Transaction::whereBetween('created_at', [$startDate, $endDate])->sum('amount') + Plan::whereBetween('created_at', [$startDate, $endDate])->sum('price');
@@ -66,9 +64,5 @@ class TransactionController extends Controller
             'up_down_revenues' => $up_down_revenues,
             'all_transactions' => $all_transactions
         ]);
-
-
-
-
     }
 }

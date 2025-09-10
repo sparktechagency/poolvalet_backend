@@ -22,11 +22,10 @@ class PaymentController extends Controller
 {
     public function createPaymentIntent(Request $request)
     {
-        // ✅ Step 1: Validate input
         $validator = Validator::make($request->all(), [
             'provider_id' => 'required|numeric|exists:users,id',
             'amount' => 'required|numeric|min:1',
-            'payment_method_types' => 'required|string', // example: card
+            'payment_method_types' => 'required|string',
         ]);
 
         if ($validator->fails()) {
@@ -36,7 +35,6 @@ class PaymentController extends Controller
             ], 422);
         }
 
-        // ✅ Step 2: Find provider
         $provider = User::find($request->provider_id);
 
         if (!$provider->stripe_account_id) {
@@ -46,14 +44,12 @@ class PaymentController extends Controller
             ], 400);
         }
 
-        // ✅ Step 3: Stripe setup
         Stripe::setApiKey(env('STRIPE_SECRET'));
 
         $amountInCents = (int) ($request->amount * 100);
         $applicationFee = (int) round($amountInCents * 0.05); // 5% fee to admin
 
         try {
-            // ✅ Step 4: Create PaymentIntent
             $paymentIntent = PaymentIntent::create([
                 'amount' => $amountInCents,
                 'currency' => 'usd',
@@ -88,11 +84,11 @@ class PaymentController extends Controller
             $adminProfile->total_earnings = $adminProfile->total_earnings + $adminEarning;
             $adminProfile->save();
 
-            // ✅ Step 5: Return intent info
+
             return response()->json([
                 'status' => true,
                 'message' => 'PaymentIntent created successfully.',
-                'client_secret' => $paymentIntent->client_secret, // for frontend
+                'client_secret' => $paymentIntent->client_secret,
                 'payment_intent' => $paymentIntent
             ], 201);
 
@@ -103,7 +99,6 @@ class PaymentController extends Controller
             ], 500);
         }
     }
-
     public function paymentSuccess(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -123,11 +118,8 @@ class PaymentController extends Controller
         Stripe::setApiKey(env('STRIPE_SECRET'));
 
         try {
-
            $paymentIntent = PaymentIntent::retrieve($request->payment_intent_id);
-
             if ($paymentIntent->status === 'succeeded') {  // succeeded or requires_payment_method
-
                 $transaction = Transaction::create([
                     'payment_intent_id' => $request->payment_intent_id,
                     'user_id' => Auth::id(),
@@ -138,7 +130,6 @@ class PaymentController extends Controller
                     'service_name' => Quote::where('id',$request->quote_id)->first()->service,
                     'amount' => $request->amount,
                     'status' => 'Completed',
-
                 ]);
 
                 $quote = Quote::where('id',$request->quote_id)->first();

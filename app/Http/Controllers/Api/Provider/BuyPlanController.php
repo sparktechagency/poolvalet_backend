@@ -16,63 +16,8 @@ use Stripe\Stripe;
 
 class BuyPlanController extends Controller
 {
-
-    // public function PaymentIntent(Request $request)
-    // {
-
-    //     $plan_status = Plan::where('provider_id',Auth::user()->id)->get()->pluck('status');
-
-    //     $active_plan = Plan::where('provider_id',Auth::user()->id)->where('status','Active')->first();
-
-    //     if (in_array($plan_status, ['Active'])) {
-    //             return response()->json([
-    //                 'status'=> true,
-    //                 'message'=> 'You have already a plan.',
-    //                 'current_plan' => $active_plan
-    //             ]);
-    //     }
-
-    //     $validator = Validator::make($request->all(), [
-    //         // 'user_id'        => 'required|numeric',
-    //         'amount' => 'required',
-    //         'payment_method_types' => 'required',
-    //     ]);
-
-    //     if ($validator->fails()) {
-    //         return response()->json([
-    //             'ok' => false,
-    //             'message' => $validator->errors()
-    //         ], 422);
-    //     }
-
-    //     Stripe::setApiKey(env('STRIPE_SECRET'));
-
-
-    //     try {
-    //         $paymentIntent = PaymentIntent::create([
-    //             'amount' => $request->amount * 100,
-    //             'currency' => 'usd',
-    //             'payment_method_types' => [$request->payment_method_types],
-    //             'metadata' => [
-    //                 'user_id' => Auth::id(),
-    //             ],
-    //         ]);
-
-    //         return response()->json([
-    //             'ok' => true,
-    //             'message' => 'Payment intent successfully created',
-    //             'data' => $paymentIntent,
-    //         ], 201);
-    //     } catch (Exception $e) {
-    //         return response()->json(['error' => $e->getMessage()], 500);
-    //     }
-
-
-    // }
-
     public function buyPlanIntent(Request $request)
     {
-        // ✅ Check if user already has an Active plan
         $activePlan = Plan::where('provider_id', Auth::id())
             ->where('status', 'Active')
             ->first();
@@ -85,7 +30,6 @@ class BuyPlanController extends Controller
             ]);
         }
 
-        // ✅ Validate input
         $validator = Validator::make($request->all(), [
             'amount' => 'required|numeric',
             'payment_method_types' => 'required|string',
@@ -98,7 +42,6 @@ class BuyPlanController extends Controller
             ], 422);
         }
 
-        // ✅ Set Stripe API Key
         Stripe::setApiKey(env('STRIPE_SECRET'));
 
         try {
@@ -128,15 +71,11 @@ class BuyPlanController extends Controller
             ], 500);
         }
     }
-
     public function buyPlanSuccess(Request $request)
     {
-
-
         $subscription = Subscription::where('id', $request->subscription_id)->first();
 
         if ($subscription->id == '1') {
-
             // // ✅ Check if user already has an Active plan
             // $current_plan = Plan::where('provider_id', Auth::id())
             //     ->where('status', 'Active')
@@ -175,7 +114,6 @@ class BuyPlanController extends Controller
             ], 200);
         }
 
-
         $validator = Validator::make($request->all(), [
             'payment_intent_id' => 'required',
             'subscription_id' => 'required'
@@ -191,10 +129,8 @@ class BuyPlanController extends Controller
         Stripe::setApiKey(env('STRIPE_SECRET'));
 
         try {
-
             $paymentIntent = PaymentIntent::retrieve($request->payment_intent_id);
             if ($paymentIntent->status === 'succeeded') {  // succeeded or requires_payment_method
-
                 $plan = Plan::Create([
                     'payment_intent_id' => $request->payment_intent_id,
                     'provider_id' => Auth::id(),
@@ -224,12 +160,9 @@ class BuyPlanController extends Controller
                 'message' => 'Payment failed: ' . $e->getMessage(),
             ], 500);
         }
-
     }
-
     public function currentPlan(Request $request)
     {
-        // ✅ Check if user already has an Active plan
         $current_plan = Plan::where('provider_id', $request->provider_id ?? Auth::id())
             ->where('status', 'Active')
             ->first();

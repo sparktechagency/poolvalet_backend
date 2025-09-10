@@ -118,22 +118,16 @@ class AuthController extends Controller
             'data' => $user
         ], 200);
     }
-
     public function register(Request $request)
     {
-
-        // create otp
         $otp = rand(100000, 999999);
         $otp_expires_at = Carbon::now()->addMinutes(10);
-
-        // Send OTP Email
         $email_otp = [
             'userName' => explode('@', $request->email)[0],
             'otp' => $otp,
             'validity' => '10 minute'
         ];
 
-        // validation roles
         $validator = Validator::make($request->all(), [
             'role' => 'required|in:1,2',
             'full_name' => 'required|string|max:255',
@@ -142,7 +136,6 @@ class AuthController extends Controller
             'without_otp' => 'nullable|string'
         ]);
 
-        // check validation
         if ($validator->fails()) {
             return response()->json([
                 'status' => false,
@@ -163,14 +156,13 @@ class AuthController extends Controller
                 'user_id' => $user->id,
             ]);
 
-            // custom token time
             $tokenExpiry = Carbon::now()->addDays(7);
             $customClaims = ['exp' => $tokenExpiry->timestamp];
             $token = JWTAuth::customClaims($customClaims)->fromUser($user);
 
             return response()->json([
                 'status' => true,
-                'message' => $user->role.' Register successfully.',
+                'message' => $user->role . ' Register successfully.',
                 'access_token' => $token,
                 'token_type' => 'bearer',
                 'expires_in' => $tokenExpiry,
@@ -202,7 +194,6 @@ class AuthController extends Controller
             'message' => 'Register successfully, OTP send you email, please verify your account'
         ], 201);
     }
-
     public function verifyOtp(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -225,17 +216,13 @@ class AuthController extends Controller
             ], 401);
         }
 
-        // check otp
         if ($user->otp_expires_at > Carbon::now()) {
-
-            // user status update
             $user->otp = null;
             $user->otp_expires_at = null;
             $user->otp_verified_at = Carbon::now();
             $user->status = 'active';
             $user->save();
 
-            // custom token time
             $tokenExpiry = Carbon::now()->addDays(7);
             $customClaims = ['exp' => $tokenExpiry->timestamp];
             $token = JWTAuth::customClaims($customClaims)->fromUser($user);
@@ -255,15 +242,12 @@ class AuthController extends Controller
             ], 401);
         }
     }
-
     public function resendOtp(Request $request)
     {
-        // validation roles
         $validator = Validator::make($request->all(), [
             'email' => 'required|email',
         ]);
 
-        // check validation
         if ($validator->fails()) {
             return response()->json([
                 'status' => false,
@@ -271,7 +255,6 @@ class AuthController extends Controller
             ], 422);
         }
 
-        // Check if User Exists
         $user = User::where('email', $request->email)->first();
 
         if (!$user) {
@@ -284,13 +267,11 @@ class AuthController extends Controller
         $otp = rand(100000, 999999);
         $otp_expires_at = Carbon::now()->addMinutes(10);
 
-        // update otp and otp expired at
         $user->otp = $otp;
         $user->otp_expires_at = $otp_expires_at;
         $user->otp_verified_at = null;
         $user->save();
 
-        // Send OTP Email
         $data = [
             'userName' => explode('@', $request->email)[0],
             'otp' => $otp,
@@ -308,10 +289,8 @@ class AuthController extends Controller
             'message' => 'OTP resend to your email'
         ], 200);
     }
-
     public function login(Request $request)
     {
-        // Validation Rules
         $validator = Validator::make($request->all(), [
             'email' => 'required|string|email|max:255',
             'password' => 'required|string|min:8',
@@ -319,7 +298,6 @@ class AuthController extends Controller
             'role' => 'nullable'
         ]);
 
-        // Validation Errors
         if ($validator->fails()) {
             return response()->json([
                 'status' => false,
@@ -327,10 +305,8 @@ class AuthController extends Controller
             ], 422);
         }
 
-        // Check if User Exists
         $user = User::where('email', $request->email)->first();
 
-        // User Not Found
         if (!$user) {
             return response()->json([
                 'status' => false,
@@ -338,7 +314,6 @@ class AuthController extends Controller
             ], 404);
         }
 
-        // Check account status
         if ($user->status !== 'Active') {
             return response()->json([
                 'status' => false,
@@ -353,7 +328,6 @@ class AuthController extends Controller
             ], 403);
         }
 
-        // Verify password
         if (!Hash::check($request->password, $user->password)) {
             return response()->json([
                 'status' => false,
@@ -365,12 +339,10 @@ class AuthController extends Controller
             'last_login_at' => Carbon::now(),
         ]);
 
-        // Generate JWT Token with remember me
         $tokenExpiry = $request->remember_me == '1' ? Carbon::now()->addDays(30) : Carbon::now()->addDays(7);
         $customClaims = ['exp' => $tokenExpiry->timestamp];
         $token = JWTAuth::customClaims($customClaims)->fromUser($user);
 
-        // Return Success Response
         return response()->json([
             'status' => true,
             'message' => 'Login successful',
@@ -381,7 +353,6 @@ class AuthController extends Controller
             'user' => $user,
         ], 200);
     }
-
     public function logout(Request $request)
     {
         try {
@@ -398,15 +369,12 @@ class AuthController extends Controller
             ], 500);
         }
     }
-
     public function forgotPassword(Request $request)
     {
-        // Validation Rules
         $validator = Validator::make($request->all(), [
             'email' => 'required|email',
         ]);
 
-        // Return Validation Errors
         if ($validator->fails()) {
             return response()->json([
                 'status' => false,
@@ -414,10 +382,8 @@ class AuthController extends Controller
             ], 422);
         }
 
-        // Check if User Exists
         $user = User::where('email', $request->email)->first();
 
-        // User Not Found
         if (!$user) {
             return response()->json([
                 'status' => false,
@@ -425,11 +391,9 @@ class AuthController extends Controller
             ], 404);
         }
 
-        // create otp
         $otp = rand(100000, 999999);
         $otp_expires_at = Carbon::now()->addMinutes(10);
 
-        // update otp and otp veridied and otp expired at
         $user->otp_verified_at = null;
         $user->otp = $otp;
         $user->otp_expires_at = $otp_expires_at;
@@ -452,15 +416,12 @@ class AuthController extends Controller
             'message' => 'OTP send to your email'
         ], 200);
     }
-
     public function changePassword(Request $request)
     {
-        // Validation Rules
         $validator = Validator::make($request->all(), [
             'password' => 'required|string|min:8|confirmed'
         ]);
 
-        // Return Validation Errors
         if ($validator->fails()) {
             return response()->json([
                 'status' => false,
@@ -468,10 +429,8 @@ class AuthController extends Controller
             ], 422);
         }
 
-        // Check if User Exists
         $user = User::where('id', Auth::id())->first();
 
-        // User Not Found
         if (!$user) {
             return response()->json([
                 'status' => false,
@@ -493,7 +452,6 @@ class AuthController extends Controller
             ]);
         }
     }
-
     public function updatePassword(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -532,7 +490,6 @@ class AuthController extends Controller
             ]);
         }
     }
-
     public function getProfile(Request $request)
     {
         $user = User::find($request->user_id ?? Auth::id());
@@ -544,13 +501,9 @@ class AuthController extends Controller
         }
 
         $user->avatar = $user->avatar != null ? $user->avatar : 'https://ui-avatars.com/api/?background=random&name=' . $user->full_name;
-
         $total_order_user = Quote::where('user_id', Auth::id())->count();
-
         $total_order_provider = Bid::where('provider_id', Auth::id())->where('bid_status', 'public')->count();
-
         $completed_order = Profile::where('user_id', Auth::id())->first()->completed_services;
-
 
         return response()->json([
             'status' => true,

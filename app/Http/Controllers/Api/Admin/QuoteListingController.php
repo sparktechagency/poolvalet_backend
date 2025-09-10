@@ -11,7 +11,6 @@ class QuoteListingController extends Controller
     public function getQuoteListing(Request $request)
     {
         $perPage = $request->get('per_page', 10);
-
         $quotes = Quote::with([
             'user' => function ($q) {
                 $q->select('id', 'full_name', 'avatar');
@@ -33,7 +32,6 @@ class QuoteListingController extends Controller
             if (is_string($decoded)) {
                 $decoded = json_decode($decoded, true);
             }
-
             $quote->photos = $decoded;
         }
 
@@ -47,7 +45,6 @@ class QuoteListingController extends Controller
             'quotes' => $quotes
         ]);
     }
-
     public function viewQuote($id = null)
     {
         $quote = Quote::find($id);
@@ -65,6 +62,4 @@ class QuoteListingController extends Controller
             'quote' => $quote
         ]);
     }
-
-
 }

@@ -15,75 +15,13 @@ use Stripe\Stripe;
 
 class StripeConnectController extends Controller
 {
-    // public function createConnectedAccount()
-    // {
-    //     Stripe::setApiKey(env('STRIPE_SECRET'));
-
-    //     $user = Auth::user();
-
-    //     // Stripe account already exists?
-    //     if ($user->stripe_account_id) {
-    //         return response()->json([
-    //             'status' => false,
-    //             'message' => 'You already have a connected Stripe account.',
-    //             'stripe_account_id' => $user->stripe_account_id
-    //         ]);
-    //     }
-
-    //     // ✅ Create new Express account
-    //     $account = Account::create([
-    //         'type' => 'express',
-    //         'country' => 'US',
-    //         'email' => $user->email,
-    //         'capabilities' => [
-    //             'card_payments' => ['requested' => true],
-    //             'transfers' => ['requested' => true],
-    //         ],
-    //     ]);
-
-    //     // ✅ Store account ID to user
-    //     $user->update([
-    //         'stripe_account_id' => $account->id,
-    //     ]);
-
-    //     // ✅ Create onboarding link
-    //     $accountLink = AccountLink::create([
-    //         'account' => $account->id,
-    //         'refresh_url' => route('stripe.refresh'),
-    //         'return_url' => route('stripe.success'),
-    //         'type' => 'account_onboarding',
-    //     ]);
-
-    //     // ✅ Redirect to onboarding
-    //     return response()->json([
-    //         'status'=> true,
-    //         'message'=> 'Your connected account link',
-    //         'link' => $accountLink->url
-    //     ]);
-    // }
-
-
     public function createConnectedAccount(Request $request)
     {
-        // ✅ Validate email
-        // $validator = Validator::make($request->all(), [
-        //     'email' => 'required|email',
-        // ]);
-
-        // if ($validator->fails()) {
-        //     return response()->json([
-        //         'status' => false,
-        //         'message' => $validator->errors()
-        //     ], 422);
-        // }
-
         $email = Auth::user()->email;
 
         try {
-            // ✅ Set Stripe API key
             Stripe::setApiKey(env('STRIPE_SECRET'));
 
-            // ✅ Create Express Account
             $account = Account::create([
                 'type' => 'express',
                 'country' => 'US',
@@ -95,10 +33,8 @@ class StripeConnectController extends Controller
                 ],
             ]);
 
-            // ✅ Build return URL
             $customReturnUrl = url("/connected?status=success&email={$email}&account_id={$account->id}");
 
-            // ✅ Create onboarding link
             $accountLink = AccountLink::create([
                 'account' => $account->id,
                 'refresh_url' => url('/vendor/reauth'),
@@ -121,7 +57,6 @@ class StripeConnectController extends Controller
             ], 500);
         }
     }
-
     public function handleConnectedAccount(Request $request)
     {
         $email = $request->email;
@@ -136,8 +71,6 @@ class StripeConnectController extends Controller
 
         try {
             Stripe::setApiKey(env('STRIPE_SECRET'));
-
-            // Get account status from Stripe
             $account = Account::retrieve($accountId);
 
             if (!$account->charges_enabled) {
@@ -148,7 +81,6 @@ class StripeConnectController extends Controller
                 ]);
             }
 
-            // Update user in DB
             $user = User::where('email', $email)->first();
             if ($user) {
                 $user->stripe_account_id = $accountId;
@@ -170,5 +102,4 @@ class StripeConnectController extends Controller
             ], 500);
         }
     }
-
 }

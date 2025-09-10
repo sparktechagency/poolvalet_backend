@@ -17,18 +17,16 @@ class MyServiceController extends Controller
     {
         $status = $request->status;
 
-        if($request->status == 'In progress'){
+        if ($request->status == 'In progress') {
             $status = 'Accepted';
         }
 
-        $bids = Bid::with(['quote','quote.user'])
-            ->where('status',$status)
+        $bids = Bid::with(['quote', 'quote.user'])
+            ->where('status', $status)
             ->where('provider_id', Auth::id())
             ->where('bid_status', 'Public')
             ->latest()
             ->paginate($request->per_page ?? 10);
-
-
 
         foreach ($bids as $bid) {
             $bid->quote->avatar = $bid->quote->avatar
@@ -54,7 +52,6 @@ class MyServiceController extends Controller
             'data' => $bids
         ]);
     }
-
     public function cancelBid(Request $request, $id = null)
     {
         $bid = Bid::where('id', $id)->first();
@@ -73,14 +70,11 @@ class MyServiceController extends Controller
             'message' => 'Bid canceled successfully.'
         ]);
     }
-
     public function markAsComplete(Request $request)
     {
-
         $bids_of_quote = Bid::where('id', $request->bid_id)->where('bid_status', 'public')->first();
+        $quote = Quote::where('id', $bids_of_quote->quote_id)->first();
 
-         $quote = Quote::where('id', $bids_of_quote->quote_id)->first();
-        
         if (!$quote) {
             return response()->json([
                 'status' => false,
@@ -91,14 +85,11 @@ class MyServiceController extends Controller
         if ($bids_of_quote) {
             $bids_of_quote->status = 'Completed';
             $bids_of_quote->save();
-
             $quote->status = 'Completed';
             $quote->save();
-
             $profile = Profile::where('user_id', Auth::id())->first();
             $profile->increment('completed_services');
         }
-
 
         $quote = Quote::where('id', $bids_of_quote->quote_id)->first();
         $user = User::where('id', $quote->user_id)->first();
@@ -121,11 +112,9 @@ class MyServiceController extends Controller
             'data' => $quote
         ]);
     }
-
     public function myEarnings(Request $request)
     {
         $mark_as_complete_quotes = Bid::where('status', 'Completed')->where('provider_id', Auth::id())->pluck('quote_id')->toArray();
-
         $my_earnings = Quote::with('user')->whereIn('id', $mark_as_complete_quotes)->where('status', 'Completed')->get();
 
         if (!$my_earnings) {
@@ -137,7 +126,7 @@ class MyServiceController extends Controller
 
         foreach ($my_earnings as $item) {
             $item->photos = json_decode($item->photos);
-            $item->price_offered = Bid::where('quote_id',$item->id)->first()->price_offered;
+            $item->price_offered = Bid::where('quote_id', $item->id)->first()->price_offered;
         }
 
         return response()->json([

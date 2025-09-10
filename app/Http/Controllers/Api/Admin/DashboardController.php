@@ -14,7 +14,6 @@ class DashboardController extends Controller
     public function getData(Request $request)
     {
         $last_days = $request->filter + $request->filter;
-
         $lastStartDate = Carbon::now()->subDays($last_days ?? 14);
         $startDate = Carbon::now()->subDays($request->filter ?? 7);
         $endDate = Carbon::now();
@@ -85,7 +84,6 @@ class DashboardController extends Controller
         ]);
 
     }
-
     public function getChart(Request $request)
     {
         // active users

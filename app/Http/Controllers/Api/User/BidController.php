@@ -48,7 +48,6 @@ class BidController extends Controller
     }
     public function getAcceptedBids(Request $request)
     {
-
         if ($request->status == 'Completed') {
             $status = 'Completed';
         } else {
@@ -59,22 +58,16 @@ class BidController extends Controller
             ->where('bid_status', 'Public')
             ->paginate($request->per_page ?? 10);
 
-
         foreach ($bids as $bid) {
-
             $bid->provider->avatar = $bid->provider->avatar
                 ? asset($bid->provider->avatar)
                 : 'https://ui-avatars.com/api/?background=random&name=' . urlencode($bid->provider->full_name);
-
-
             $ratingStats = Review::where('provider_id', $bid->provider_id)
                 ->selectRaw('AVG(rating) as average_rating, COUNT(*) as total_reviews')
                 ->first();
-
             $bid->average_rating = $ratingStats->average_rating
                 ? number_format($ratingStats->average_rating, 1)
                 : 0;
-
             $bid->date = Quote::where('id',$bid->quote_id)->first()->date;
         }
 

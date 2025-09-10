@@ -12,7 +12,6 @@ class ReviewController extends Controller
 {
     public function createReview(Request $request)
     {
-
         $validator = Validator::make($request->all(), [
             'provider_id' => 'required|exists:users,id',
             'quote_id' => 'nullable',
@@ -26,7 +25,6 @@ class ReviewController extends Controller
                 'message' => $validator->errors()
             ], 422);
         }
-
 
         $review = Review::create([
             'user_id' => Auth::id(),
@@ -42,7 +40,6 @@ class ReviewController extends Controller
             'data' => $review,
         ]);
     }
-
     public function getReviews(Request $request)
     {
         $reviews = Review::latest()->paginate($request->per_page ?? 10);
@@ -53,7 +50,6 @@ class ReviewController extends Controller
             'data' => $reviews,
         ]);
     }
-
     public function viewReview($id)
     {
         $review = Review::find($id);
@@ -71,7 +67,6 @@ class ReviewController extends Controller
             'data' => $review,
         ]);
     }
-
     public function getProviderRating(Request $request){
         $provider_review = Review::where('quote_id',$request->quote_id)->first();
 

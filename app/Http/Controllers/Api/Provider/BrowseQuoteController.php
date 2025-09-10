@@ -20,22 +20,17 @@ class BrowseQuoteController extends Controller
     public function browseQuotes(Request $request)
     {
         $category_names = Category::pluck('name')->toArray();
-
         $makeFinalQuote = Bid::where('provider_id', Auth::id())->pluck('quote_id');
-
         $query = Quote::query();
 
         if ($makeFinalQuote) {
             $query->whereNotIn('id', $makeFinalQuote);
-
         }
 
-        // ✅ Optional category filter
         if ($request->has('category') && in_array($request->category, $category_names)) {
             $query->where('service', $request->category);
         }
 
-        // ✅ Search filter (by service name)
         if ($request->filled('search')) {
             $query->where('service', 'LIKE', '%' . $request->search . '%')
                 ->orWhere('describe_issue', 'LIKE', '%' . $request->search . '%');
@@ -50,7 +45,6 @@ class BrowseQuoteController extends Controller
             ->latest()
             ->paginate($request->per_page ?? 10);
 
-        // ✅ Format each user
         foreach ($quotes as $quote) {
             $quote->user->avatar = $quote->user->avatar
                 ? asset($quote->user->avatar)
@@ -65,8 +59,6 @@ class BrowseQuoteController extends Controller
             'data' => $quotes
         ]);
     }
-
-
     public function viewBrowseQuote(Request $request, $id = null)
     {
         $quote = Quote::with('user.profile')->where('id', $id)->first();
@@ -110,10 +102,8 @@ class BrowseQuoteController extends Controller
             'data' => $quote
         ]);
     }
-
     public function acceptBudget(Request $request)
     {
-
         $check_plan = Plan::where('provider_id', Auth::id())->where('status', 'active')->first();
 
         if (!$check_plan) {
@@ -123,7 +113,6 @@ class BrowseQuoteController extends Controller
             ]);
         }
 
-        // Plan must be active and have at least 1 quote left
         if ($check_plan->status != 'Active' || $check_plan->total_quotes <= 0) {
             return response()->json([
                 'status' => false,
@@ -134,12 +123,10 @@ class BrowseQuoteController extends Controller
         // Decrement quotes
         // $check_plan->decrement('total_quotes');
 
-
         // if ($check_plan->total_quotes <= 0) {
         //     $check_plan->status = 'Inactive';
         //     $check_plan->save();
         // }
-
 
         $quote = Quote::where('id', $request->quote_id)->first();
 
@@ -186,10 +173,8 @@ class BrowseQuoteController extends Controller
             'data' => $isbid ? $isbid : $bid
         ]);
     }
-
     public function applyBid(Request $request)
     {
-
         $check_plan = Plan::where('provider_id', Auth::id())->where('status', 'active')->first();
 
         if (!$check_plan) {
@@ -199,7 +184,6 @@ class BrowseQuoteController extends Controller
             ]);
         }
 
-        // Plan must be active and have at least 1 quote left
         if ($check_plan->status != 'Active' || $check_plan->total_quotes <= 0) {
             return response()->json([
                 'status' => false,
@@ -209,7 +193,6 @@ class BrowseQuoteController extends Controller
 
         // Decrement quotes
         // $check_plan->decrement('total_quotes');
-
 
         // if ($check_plan->total_quotes <= 0) {
         //     $check_plan->status = 'Inactive';
@@ -260,15 +243,12 @@ class BrowseQuoteController extends Controller
             ]);
         }
 
-
-
         return response()->json([
             'status' => true,
             'message' => 'Bid applied successfully',
             'data' => $isbid ? $isbid : $bid
         ]);
     }
-
     public function getYourBid(Request $request)
     {
         $bid = Bid::where('quote_id', $request->quote_id)
@@ -290,7 +270,6 @@ class BrowseQuoteController extends Controller
         ]);
 
     }
-
     public function editYourBid(Request $request)
     {
         $bid = Bid::where('quote_id', $request->quote_id)
@@ -317,7 +296,6 @@ class BrowseQuoteController extends Controller
 
         ]);
     }
-
     public function makeFinalSaveYourBid(Request $request)
     {
         $bid = Bid::where('quote_id', $request->quote_id)
@@ -333,10 +311,7 @@ class BrowseQuoteController extends Controller
         }
 
         $check_plan = Plan::where('provider_id', Auth::id())->where('status', 'active')->first();
-
-        // Decrement quotes
         $check_plan->decrement('total_quotes');
-
 
         if ($check_plan->total_quotes <= 0) {
             $check_plan->status = 'Inactive';
@@ -346,7 +321,6 @@ class BrowseQuoteController extends Controller
         $bid->status = 'Pending';
         $bid->bid_status = 'Public';
         $bid->save();
-
 
         $quote = Quote::where('id', $request->quote_id)->first();
         $user = User::where('id', $quote->user_id)->first();
@@ -368,12 +342,9 @@ class BrowseQuoteController extends Controller
             'data' => $bid
         ]);
     }
-
     public function biddingLists(Request $request)
     {
         $perPage = $request->get('per_page', 10);
-
-        // বাকি বিড লিস্ট
         $bidding_lists = Bid::with(['provider:id,full_name,avatar'])
             ->where('quote_id', $request->quote_id)
             // ->where('bid_status', 'Private')
@@ -381,7 +352,6 @@ class BrowseQuoteController extends Controller
             ->select('id', 'provider_id', 'price_offered', 'bid_status', 'created_at')
             ->paginate($perPage);
 
-        // ✅ নিজের bid (যদি থাকে)
         $yourBid = Bid::where('quote_id', $request->quote_id)
             ->where('provider_id', Auth::id())
             ->value('price_offered'); // value() null return করে যদি না পায়
@@ -393,14 +363,11 @@ class BrowseQuoteController extends Controller
         //     ]);
         // }
 
-        // ✅ Avatar formatting
         foreach ($bidding_lists as $bid) {
             $bid->provider->avatar = $bid->provider->avatar
                 ? asset($bid->provider->avatar)
                 : 'https://ui-avatars.com/api/?background=random&name=' . urlencode($bid->provider->full_name);
         }
-
-
 
         return response()->json([
             'status' => true,
