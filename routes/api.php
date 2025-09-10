@@ -39,6 +39,7 @@ Route::post('/social-login', [AuthController::class, 'socialLogin']);
 Route::get('/get-page', [PageController::class, 'getPage']);
 // get category lists
 Route::get('/get-category-web', [CategoryController::class, 'getCategories']);
+Route::get('/get-subscriptions-web', [SubscriptionController::class, 'getSubscriptions']);
 
 // private route for user
 Route::middleware('auth:api')->group(function () {
