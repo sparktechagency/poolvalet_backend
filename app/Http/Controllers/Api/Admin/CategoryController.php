@@ -15,8 +15,8 @@ class CategoryController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'description' => 'nullable|string|max:255',
-            'expected_budget' => 'nullable|string|max:255',
-            'icon' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'expected_budget' => 'nullable|string|max:255|in:YES,NO',
+            'icon' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:20480',
         ]);
 
         if ($validator->fails()) {
@@ -46,9 +46,9 @@ class CategoryController extends Controller
             'category' => $category,
         ]);
     }
-    public function getCategories($id = null)
+    public function getCategories()
     {
-        $categories = Category::all();
+        $categories = Category::latest()->get();
 
         return response()->json([
             'status' => true,
@@ -86,7 +86,9 @@ class CategoryController extends Controller
 
         $validator = Validator::make($request->all(), [
             'name' => 'sometimes|string|max:255',
-            'icon' => 'sometimes|image|mimes:jpeg,png,jpg,gif,svg|max:2048', // image file validation
+            'icon' => 'sometimes|image|mimes:jpeg,png,jpg,gif,svg|max:20480', // image file validation
+            'description' => 'nullable|string|max:255',
+            'expected_budget' => 'nullable|string|max:255|in:YES,NO',
         ]);
 
         if ($validator->fails()) {
@@ -106,13 +108,13 @@ class CategoryController extends Controller
             $file = $request->file('icon');
             $filename = time() . '_' . $file->getClientOriginalName();
             $filepath = $file->storeAs('icon', $filename, 'public'); // stored in /storage/app/public/categories
-            $category->icon = '/storage/' . $filepath;
+            $icon = '/storage/' . $filepath;
         }
 
-        if ($request->has('name')) {
-            $category->name = $request->name;
-        }
-
+        $category->icon = $icon ?? $category->icon;
+        $category->name = $request->name ?? $category->name;
+        $category->description = $request->description ?? $category->description;
+        $category->expected_budget = $request->expected_budget ?? $category->expected_budget;
         $category->save();
 
         return response()->json([
