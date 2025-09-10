@@ -28,8 +28,12 @@ class SubscriptionController extends Controller
         $subscription = Subscription::where('id', $id)->first();
 
         $subscription->number_of_quotes = $request->number_of_quotes ?? $subscription->number_of_quotes;
-        if($id != 1){
+        if ($id != 1) {
             $subscription->price = $request->price ?? $subscription->price;
+        }
+
+        if ($id == 4) {
+            $subscription->number_of_quotes = 50000;
         }
         $subscription->save();
 
