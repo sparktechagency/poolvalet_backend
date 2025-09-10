@@ -23,19 +23,15 @@ class QuoteController extends Controller
             'property_type' => 'required|string|max:255',
             'service_type' => 'required|string|max:255',
             'pool_depth' => 'nullable|string|max:255',
-            'date' => 'required',
+            'date' => 'nullable',
             'zip_code' => 'required|string|max:5',
             'address' => 'required|string|max:255',
             'expected_budget' => 'nullable|numeric|min:0',
-
-            // ✅ Either photos OR video required
             'photos' => 'required_without:video|array|max:5',
             'photos.*' => 'image|mimes:jpeg,png,jpg,gif,svg|max:20480',
-
             'video' => 'required_without:photos|file|mimetypes:video/mp4,video/quicktime|max:512000',
         ]);
 
-        // Custom validation: Prevent both photos and video
         if ($request->hasFile('photos') && $request->hasFile('video')) {
             $validator->after(function ($validator) {
                 $validator->errors()->add('media', 'You can upload either photos or a video — not both.');
@@ -49,7 +45,6 @@ class QuoteController extends Controller
             ], 422);
         }
 
-        // Upload photos
         $photoPaths = [];
         if ($request->hasFile('photos')) {
             foreach ($request->file('photos') as $photo) {
@@ -57,18 +52,29 @@ class QuoteController extends Controller
             }
         }
 
-        // Upload video
         $videoPath = null;
         if ($request->hasFile('video')) {
             $videoPath = '/storage/' . $request->file('video')->store('quotes/videos', 'public');
         }
 
         // Format date & time
-        $date = Carbon::createFromFormat('m/d/Y', $request->date)->format('Y-m-d');
+        // $date = Carbon::createFromFormat('m/d/Y', $request->date)->format('Y-m-d');
         // $time = Carbon::parse($request->time)->format('H:i');
         // Carbon::createFromFormat('H:i', $request->time)->format('g:i A');
 
-        // Create quote
+        $date = null;
+        if (!empty($request->date)) {
+            try {
+                $date = Carbon::createFromFormat('m/d/Y', $request->date)->format('Y-m-d');
+            } catch (\Exception $e) {
+                try {
+                    $date = Carbon::parse($request->date)->format('Y-m-d');
+                } catch (\Exception $e2) {
+                    $date = null;
+                }
+            }
+        }
+
         $quote = Quote::create([
             'user_id' => Auth::id(),
             'service' => $request->service,
@@ -76,7 +82,7 @@ class QuoteController extends Controller
             'property_type' => $request->property_type,
             'service_type' => $request->service_type,
             'pool_depth' => $request->pool_depth,
-            'date' => $date,
+            'date' => $date ?? null,
             'zip_code' => $request->zip_code,
             'address' => $request->address,
             'expected_budget' => $request->expected_budget ?? 0,
@@ -101,91 +107,6 @@ class QuoteController extends Controller
             'quote' => $quote,
         ], 201);
     }
-
-    // public function createQuote(Request $request)
-    // {
-    //     $validator = Validator::make($request->all(), [
-    //         'service' => 'required|string|max:255',
-    //         'describe_issue' => 'required|string',
-    //         'property_type' => 'required|string|max:255',
-    //         'service_type' => 'required|string|max:255',
-    //         'pool_depth' => 'nullable|string|max:255',
-    //         'date' => 'required|date',
-    //         'time' => 'required|date_format:H:i',
-    //         'zip_code' => 'required|string|max:5',
-    //         'address' => 'required|string|max:255',
-    //         'expected_budget' => 'nullable|numeric|min:0',
-
-    //         'photo_1' => 'nullable',
-    //         'photo_2' => 'nullable',
-    //         'photo_3' => 'nullable',
-    //         'photo_4' => 'nullable',
-    //         'video' => 'nullable|file|mimetypes:video/mp4,video/quicktime|max:10240',
-    //     ]);
-
-    //     // Custom validation: Prevent both video & images together
-    //     $hasAnyPhoto = $request->hasFile('photo_1') || $request->hasFile('photo_2') ||
-    //         $request->hasFile('photo_3') || $request->hasFile('photo_4');
-
-    //     if ($hasAnyPhoto && $request->hasFile('video')) {
-    //         $validator->after(function ($validator) {
-    //             $validator->errors()->add('media', 'You can upload either photos or a video — not both.');
-    //         });
-    //     }
-
-    //     if ($validator->fails()) {
-    //         return response()->json([
-    //             'status' => false,
-    //             'message' => $validator->errors()
-    //         ], 422);
-    //     }
-
-    //     // Upload images (if any)
-    //     $photoPaths = [];
-    //     foreach (['photo_1', 'photo_2', 'photo_3', 'photo_4'] as $photoField) {
-    //         if ($request->hasFile($photoField)) {
-    //             $photoPaths[] = '/storage/' . $request->file($photoField)->store('quotes/photos', 'public');
-    //         }
-    //     }
-
-    //     // Upload video (if any)
-    //     $videoPath = null;
-    //     if ($request->hasFile('video')) {
-    //         $videoPath = '/storage/' . $request->file('video')->store('quotes/videos', 'public');
-    //     }
-
-    //     // Format date & time
-    //     $date = Carbon::createFromFormat('m/d/Y', $request->date)->format('Y-m-d');
-    //     $time = Carbon::parse($request->time)->format('H:i');
-
-    //     // Create Quote
-    //     $quote = Quote::create([
-    //         'user_id' => Auth::id(),
-    //         'service' => $request->service,
-    //         'describe_issue' => $request->describe_issue,
-    //         'property_type' => $request->property_type,
-    //         'service_type' => $request->service_type,
-    //         'pool_depth' => $request->pool_depth ?? null,
-    //         'date' => $date,
-    //         'time' => $time,
-    //         'zip_code' => $request->zip_code,
-    //         'address' => $request->address,
-    //         'expected_budget' => $request->expected_budget ?? 0,
-    //         'photos' => json_encode($photoPaths),
-    //         'video' => $videoPath,
-    //         'status' => 'Pending',
-    //         'is_paid' => false,
-    //     ]);
-
-    //     $quote->photos = $photoPaths;
-
-    //     return response()->json([
-    //         'status' => true,
-    //         'message' => 'Quote created successfully.',
-    //         'quote' => $quote,
-    //     ], 201);
-    // }
-
     public function getQuotes(Request $request)
     {
         $perPage = $request->get('per_page', 10); // default 10 per page
@@ -327,8 +248,4 @@ class QuoteController extends Controller
             'message' => 'Quote deleted successfully.'
         ]);
     }
-
-
-
-
 }
