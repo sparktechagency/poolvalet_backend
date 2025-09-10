@@ -19,7 +19,7 @@ class QuoteController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'service' => 'required|string|max:255',
-            'describe_issue' => 'required|string',
+            'describe_issue' => 'nullable|string',
             'property_type' => 'required|string|max:255',
             'service_type' => 'required|string|max:255',
             'pool_depth' => 'nullable|string|max:255',

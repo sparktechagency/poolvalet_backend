@@ -9,6 +9,7 @@ return new class extends Migration {
     {
         Schema::table('quotes', function (Blueprint $table) {
             $table->date('date')->nullable()->change();
+            $table->longText('describe_issue')->nullable()->change();
         });
     }
 
@@ -16,6 +17,7 @@ return new class extends Migration {
     {
         Schema::table('quotes', function (Blueprint $table) {
             $table->date('date')->nullable(false)->change();
+            $table->longText('describe_issue')->nullable(false)->change();
         });
     }
 
