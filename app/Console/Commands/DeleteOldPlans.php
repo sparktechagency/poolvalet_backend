@@ -11,27 +11,25 @@ use Illuminate\Support\Facades\DB;
 class DeleteOldPlans extends Command
 {
     protected $signature = 'plans:delete-old';
-    protected $description = 'Delete plans older than 1 month';
+    protected $description = 'Delete and update plans older than 1 month';
 
     public function handle()
     {
+        $plans = Plan::all();
 
-        $free_plan = Plan::where('provider_id', Auth::id())->where('subscription_id', 1)->first();
-        $paid_plan = Plan::where('provider_id', Auth::id())->where('status', 'Active')->first();
+        foreach ($plans as $plan) {
+            $months = $plan->created_at->diffInMonths(now());
 
-        if ($free_plan) {
-            return Plan::where($free_plan->created_at > Carbon::now()->addMonth())
-                ->where('subscription_id', $free_plan->subscription_id)
-                ->delete();
+            if ($plan->subscription_id == 1 && $months >= 1) {
+                $plan->delete();
+            }
+
+            if ($plan->status == 'Active' && $plan->subscription_id != 1 && $months >= 1) {
+                $plan->status = 'Inactive';
+                $plan->save();
+            }
         }
-
-        if ($paid_plan) {
-            Plan::where($paid_plan->created_at > Carbon::now()->addMonth())
-                ->where('status', 'Active')
-                ->where('subscription_id', $paid_plan->subscription_id)
-                ->delete();
-        }
-
-        $this->info("Deleted plans.");
+        
+        $this->info("Old plans cleaned successfully.");
     }
 }

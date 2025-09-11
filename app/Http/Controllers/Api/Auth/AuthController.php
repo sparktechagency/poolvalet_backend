@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Auth;
 use App\Http\Controllers\Controller;
 use App\Mail\VerifyOTPMail;
 use App\Models\Bid;
+use App\Models\Plan;
 use App\Models\Profile;
 use App\Models\Quote;
 use App\Models\User;
@@ -291,6 +292,7 @@ class AuthController extends Controller
     }
     public function login(Request $request)
     {
+
         $validator = Validator::make($request->all(), [
             'email' => 'required|string|email|max:255',
             'password' => 'required|string|min:8',

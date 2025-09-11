@@ -9,4 +9,4 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 
-Schedule::command('plans:delete-old')->everyTenSeconds();
+Schedule::command('plans:delete-old')->daily();

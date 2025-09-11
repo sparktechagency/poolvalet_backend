@@ -22,6 +22,7 @@ use App\Http\Controllers\Api\User\BidController;
 use App\Http\Controllers\Api\User\PaymentController;
 use App\Http\Controllers\Api\User\ReviewController;
 use App\Http\Controllers\Api\User\TopProviderController;
+use App\Http\Controllers\TestController;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -139,14 +140,11 @@ Route::middleware('auth:api')->group(function () {
         Route::get('/view-quote/{id?}', [QuoteController::class, 'viewQuote']);
         Route::delete('/delete-quote/{id?}', [QuoteController::class, 'deleteQuote']);
 
-
         // bids
         Route::get('get-check-bids', [BidController::class, 'getCheckBids']);
         Route::get('get-accepted-bids', [BidController::class, 'getAcceptedBids']);
         Route::patch('accept-request', [BidController::class, 'acceptRequest']);
         Route::patch('cancel-order', [BidController::class, 'cancelOrder']);
-
-
 
         // review
         Route::post('/create-review', [ReviewController::class, 'createReview']);

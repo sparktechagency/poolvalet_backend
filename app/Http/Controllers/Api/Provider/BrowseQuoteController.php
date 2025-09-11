@@ -298,7 +298,7 @@ class BrowseQuoteController extends Controller
     }
     public function makeFinalSaveYourBid(Request $request)
     {
-        $bid = Bid::where('quote_id', $request->quote_id)
+         $bid = Bid::where('quote_id', $request->quote_id)
             ->where('bid_status', 'Private')
             ->where('provider_id', Auth::id())
             ->first();
